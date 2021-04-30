@@ -1,1 +1,189 @@
+input {
+  width: 95%;
+  border-width: 0px;
+  border-bottom-width: 2px;
+  border-bottom-color: black;
+  border-radius: 5px;
+}
 
+.sheet-battleblock {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto  auto  auto auto auto;
+/*    grid-template-rows: 25px 50px 100px 250px 50px 50px 100px 25px; */
+    justify-content: center;
+    row-gap: 10px;
+    grid-template-areas:
+      " base"
+      "char_info"
+      "weapon_info"
+      "abilities"
+      "attributes"
+      "stats";
+  }
+
+  .sheet-base {
+    grid-area: "base";
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: "type points";
+  }
+
+    .sheet-type {
+      grid-area: "type";
+    }
+    .sheet-points {
+      grid-area: "points";
+      text-align: right;
+      text-transform: capitalize;
+    }
+
+  .sheet-char_info {
+    display: grid;
+    grid-template-columns: 4fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "h_name h_m h_ws h_bs h_s h_t h_w h_a h_ld h_sv"
+        "name m ws bs s t w a ld sv";
+    grid-area: "char_info"; }
+
+    .sheet-h_name   {grid-area: "h_name";} 
+    .sheet-h_m      {grid-area: "h_m" ;}
+    .sheet-h_ws     {grid-area: "h_ws";}
+    .sheet-h_bs     {grid-area: "h_bs";}
+    .sheet-h_s      {grid-area: "h_s" ;}
+    .sheet-h_t      {grid-area: "h_t" ;}
+    .sheet-h_w      {grid-area: "h_w" ;}
+    .sheet-h_a      {grid-area: "h_a" ;}
+    .sheet-h_ld     {grid-area: "h_ld";}
+    .sheet-h_sv     {grid-area: "h_sv";}
+    
+    .sheet-name   {grid-area: "name";}
+    .sheet-m      {grid-area: "m";}
+    .sheet-ws     {grid-area: "ws";}
+    .sheet-bs     {grid-area: "bs";}
+    .sheet-s      {grid-area: "s" ;}
+    .sheet-t      {grid-area: "t" ;}
+    .sheet-w      {grid-area: "w" ;}
+    .sheet-a      {grid-area: "a" ;}
+    .sheet-ld     {grid-area: "ld";}
+    .sheet-sv     {grid-area: "sv";}
+
+  .sheet-weapon_info { 
+    display: grid;
+    grid-template-columns: 3fr 1fr 3fr 1fr 1fr 1fr 3fr;
+    grid-template-rows: auto auto auto auto auto auto;
+    grid-template-areas:
+      "w_name w_range w_type w_s w_ap w_d w_abilities"
+      "w1_name w1_range w1_type w1_s w1_ap w1_d w1_abilities"
+      "w2_name w2_range w2_type w2_s w2_ap w2_d w2_abilities"
+      "w3_name w3_range w3_type w3_s w3_ap w3_d w3_abilities"
+      "w4_name w4_range w4_type w4_s w4_ap w4_d w4_abilities"
+      "w5_name w5_range w5_type w5_s w5_ap w5_d w5_abilities";
+    grid-area: weapon_info;
+  }
+  
+    .sheet-tableheader {
+      text-align: center;
+      background-color: #ff4400;
+      border-top: black solid 2px;
+      border-bottom: black solid 2px;
+    }
+  /*  label {padding:0px;margin: 0px;} */
+    .sheet-tableheader>label{display:contents; text-align:center;}
+    
+    .sheet-textleft {text-align: left;}
+    div.sheet-grid {
+      text-align: left;
+      background-color:lightgrey;
+      border-bottom: white solid 3px;
+      border-right: white solid 3px;
+    }
+    div.sheet-grid_end { border-right: none;}
+
+    div.sheet-grid>input {
+      background-color: inherit;
+      border: none;}
+
+    .sheet-w_name       {grid-area: w_name;}
+    .sheet-w_range      {grid-area: w_range;}
+    .sheet-w_type       {grid-area: w_type;}
+    .sheet-w_s          {grid-area: w_s;}
+    .sheet-w_ap         {grid-area: w_ap;}
+    .sheet-w_d          {grid-area: w_d;}
+    .sheet-w_abilities  {grid-area: w_abilities;}
+   
+    .sheet-w1_name       {grid-area: w1_name;}
+    .sheet-w1_range      {grid-area: w1_range;}
+    .sheet-w1_type       {grid-area: w1_type;}
+    .sheet-w1_s          {grid-area: w1_s;}
+    .sheet-w1_ap         {grid-area: w1_ap;}
+    .sheet-w1_d          {grid-area: w1_d;}
+    .sheet-w1_abilities  {grid-area: w1_abilities;}
+   
+    .sheet-w2_name       {grid-area: w2_name;}
+    .sheet-w2_range      {grid-area: w2_range;}
+    .sheet-w2_type       {grid-area: w2_type;}
+    .sheet-w2_s          {grid-area: w2_s;}
+    .sheet-w2_ap         {grid-area: w2_ap;}
+    .sheet-w2_d          {grid-area: w2_d;}
+    .sheet-w2_abilities  {grid-area: w2_abilities;}
+   
+    .sheet-w3_name       {grid-area: w3_name;}
+    .sheet-w3_range      {grid-area: w3_range;}
+    .sheet-w3_type       {grid-area: w3_type;}
+    .sheet-w3_s          {grid-area: w3_s;}
+    .sheet-w3_ap         {grid-area: w3_ap;}
+    .sheet-w3_d          {grid-area: w3_d;}
+    .sheet-w3_abilities  {grid-area: w3_abilities;}
+   
+    .sheet-w4_name       {grid-area: w4_name;}
+    .sheet-w4_range      {grid-area: w4_range;}
+    .sheet-w4_type       {grid-area: w4_type;}
+    .sheet-w4_s          {grid-area: w4_s;}
+    .sheet-w4_ap         {grid-area: w4_ap;}
+    .sheet-w4_d          {grid-area: w4_d;}
+    .sheet-w4_abilities  {grid-area: w4_abilities;}
+
+    .sheet-w5_name       {grid-area: w5_name;}
+    .sheet-w5_range      {grid-area: w5_range;}
+    .sheet-w5_type       {grid-area: w5_type;}
+    .sheet-w5_s          {grid-area: w5_s;}
+    .sheet-w5_ap         {grid-area: w5_ap;}
+    .sheet-w5_d          {grid-area: w5_d;}
+    .sheet-w5_abilities  {grid-area: w5_abilities;}
+   
+  .sheet-abilities { grid-area: abilities; }
+  
+  .sheet-attributes {
+    display: grid;
+    grid-template-columns: 3fr 3fr;
+    grid-template-rows: auto;
+    gap: 0px 0px;
+    grid-template-areas:
+      "specialism demeanor";
+    grid-area: attributes;
+  }
+  
+  .sheet-specialism { grid-area: specialism; }
+  
+  .sheet-demeanor { grid-area: demeanor; }
+  
+  .sheet-stats {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 0px 0px;
+    grid-template-areas:
+      "xp flesh convalescence new_recruit";
+    grid-area: stats;
+  }
+
+  .sheet-xp { grid-area: "xp"; }
+  
+  .sheet-flesh { grid-area: "flesh"; }
+  
+  .sheet-convalescence { grid-area: "convalescence"; }
+  
+  .sheet-new_recruit { grid-area: "new_recruit"; }
