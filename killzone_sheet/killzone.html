@@ -43,7 +43,13 @@
       <div class="sheet-grid sheet-w1_s"        ><input type=text name="attr_w1s" /></div>
       <div class="sheet-grid sheet-w1_ap"       ><input type=text name="attr_w1ap" /></div>
       <div class="sheet-grid sheet-w1_d"        ><input type=text   name="attr_w1d" /></div>
-      <div class="sheet-grid sheet-grid_end sheet-w1_abilities"><input type=text   name="attr_w1abilities" /></div>
+      <div class="sheet-grid sheet-grid_end sheet-w1_abilities">
+          <div class="sheet-auto-expand">
+	          <span name="attr_w3abilities"></span>
+	          <textarea name="attr_w1abilities" ></textarea>
+          </div> 
+      </div>
+
 
       <div class="sheet-grid sheet-w2_name"     ><input type=text   name="attr_w2name" /></div>
       <div class="sheet-grid sheet-w2_range"    ><input type=text name="attr_w2range" /></div>
@@ -51,7 +57,12 @@
       <div class="sheet-grid sheet-w2_s"        ><input type=text name="attr_w2s" /></div>
       <div class="sheet-grid sheet-w2_ap"       ><input type=text name="attr_w2ap" /></div>
       <div class="sheet-grid sheet-w2_d"        ><input type=text   name="attr_w2d" /></div>
-      <div class="sheet-grid sheet-grid_end sheet-w2_abilities"><input type=text   name="attr_w2abilities" /></div>
+      <div class="sheet-grid sheet-grid_end sheet-w2_abilities">
+          <div class="sheet-auto-expand">
+	          <span name="attr_w2abilities"></span>
+	          <textarea name="attr_w2abilities" ></textarea>
+          </div> 
+      </div>
 
       <div class="sheet-grid sheet-w3_name"     ><input type=text   name="attr_w3name" /></div>
       <div class="sheet-grid sheet-w3_range"    ><input type=text name="attr_w3range" /></div>
@@ -59,7 +70,13 @@
       <div class="sheet-grid sheet-w3_s"        ><input type=text name="attr_w3s" /></div>
       <div class="sheet-grid sheet-w3_ap"       ><input type=text name="attr_w3ap" /></div>
       <div class="sheet-grid sheet-w3_d"        ><input type=text   name="attr_w3d" /></div>
-      <div class="sheet-grid sheet-grid_end sheet-w3_abilities"><input type=text   name="attr_w3abilities" /></div>
+      <div class="sheet-grid sheet-grid_end sheet-w3_abilities">
+          <div class="sheet-auto-expand">
+	          <span name="attr_w3abilities"></span>
+	          <textarea name="attr_w3abilities" ></textarea>
+          </div> 
+      </div>
+
 
       <div class="sheet-grid sheet-w4_name"     ><input type=text   name="attr_w4name" /></div>
       <div class="sheet-grid sheet-w4_range"    ><input type=text name="attr_w4range" /></div>
@@ -67,7 +84,12 @@
       <div class="sheet-grid sheet-w4_s"        ><input type=text name="attr_w4s" /></div>
       <div class="sheet-grid sheet-w4_ap"       ><input type=text name="attr_w4ap" /></div>
       <div class="sheet-grid sheet-w4_d"        ><input type=text   name="attr_w4d" /></div>
-      <div class="sheet-grid sheet-grid_end sheet-w4_abilities"><input type=text   name="attr_w4abilities" /></div>
+      <div class="sheet-grid sheet-grid_end sheet-w4_abilities">
+          <div class="sheet-auto-expand">
+	          <span name="attr_w4abilities"></span>
+	          <textarea name="attr_w4abilities" ></textarea>
+          </div> 
+      </div>
 
       <div class="sheet-grid sheet-w5_name"     ><input type=text   name="attr_w5name" /></div>
       <div class="sheet-grid sheet-w5_range"    ><input type=text name="attr_w5range" /></div>
@@ -75,30 +97,90 @@
       <div class="sheet-grid sheet-w5_s"        ><input type=text name="attr_w5s" /></div>
       <div class="sheet-grid sheet-w5_ap"       ><input type=text name="attr_w5ap" /></div>
       <div class="sheet-grid sheet-w5_d"        ><input type=text   name="attr_w5d" /></div>
-      <div class="sheet-grid sheet-grid_end sheet-w5_abilities"><input type=text   name="attr_w5abilities" /></div>
+      <div class="sheet-grid sheet-grid_end sheet-w5_abilities">
+          <div class="sheet-auto-expand">
+	          <span name="attr_w5abilities"></span>
+	          <textarea name="attr_w5abilities" ></textarea>
+          </div> 
+        </div>
     </div>
-    <div class="sheet-abilities"><label>ABILITIES</label><input type=text name="attr_char_abilities"></div>
+    <div class="sheet-abilities"><label>ABILITIES</label>
+      <div class="sheet-auto-expand">
+	      <span name="attr_char_abilities"></span>
+	      <textarea name="attr_char_abilities" ></textarea>
+      </div> 
+    </div>
     <div class="sheet-attributes">
       <div class="sheet-specialism"><label>SPECIALISM</label><input type=text name="attr_char_specialism"></div>
       <div class="sheet-demeanor"><label>DEMEANOR</label><input type=text name="attr_char_demeanor"></div>
     </div>
     <div class="sheet-stats">
-      <div class="sheet-xp"><label>EXPERIENCE</label><input type=number name="attr_xp" /></div>
+      <div class="sheet-xp"><label>EXPERIENCE <span name="attr_xp"/></label>
+
+          <input type=checkbox name="attr_xp1" value=1><span> </span>
+          <input type=checkbox name="attr_xp2" value=2><span> </span>
+          <input class="sheet-yellow" type=checkbox name="attr_xp3" value=3><span> </span>
+          <input type=checkbox name="attr_xp4" value=4><span> </span>
+          <input type=checkbox name="attr_xp5" value=5><span> </span>
+          <input type=checkbox name="attr_xp6" value=6><span> </span>
+          <input class="sheet-yellow" type=checkbox name="attr_xp7" value=7><span> </span>
+          <input type=checkbox name="attr_xp8" value=8><span> </span>
+          <input type=checkbox name="attr_xp9" value=9><span> </span>
+          <input type=checkbox name="attr_xp10" value=10><span> </span>
+          <input type=checkbox name="attr_xp11" value=11><span> </span>
+          <input class="sheet-yellow" type=checkbox name="attr_xp12" value=12><span> </span>
+
+      </div>
       <div class="sheet-flesh"><label>FLESH WOUNDS</label>
-        <span class="sheet-span_center">
-          <input type=checkbox name="attr_wounds1" value=1> <input type=checkbox name="attr_wounds2" value=2> <input type=checkbox name="attr_wounds3" value=3>
-        </span>
+        <div align=center>
+          <input type=checkbox name="attr_wounds1" value=1><span> </span>
+          <input type=checkbox name="attr_wounds2" value=2><span> </span>
+          <input  type=checkbox name="attr_wounds3" value=3><span> </span>
+        </div>
       </div>
 
       <div class="sheet-convalescence">
         <label>CONVALESCENCE</label>
-        <input type=checkbox name="attr_covalenscense" />
+        <div align=center>
+          <input type=checkbox name="attr_covalenscense" /><span> </span>
+        </div>
       </div>
 
       <div class="sheet-new_recruit">
         <label>NEW RECRUIT</label>
-        <input type=checkbox name="attr_new_recruit" checked />
+        <div align=center>
+          <input type=checkbox name="attr_new_recruit" /><span> </span>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+
+<script type="text/worker">
+
+on("change:xp1 change:xp2 change:xp3 change:xp4 change:xp5 change:xp6 change:xp7 change:xp8 change:xp9 change:xp10 change:xp11 change:xp12 sheet:opened", function() {
+  console.log("starting worker");
+  getAttrs(["xp1","xp2","xp3","xp4","xp5","xp6","xp7","xp8","xp9","xp10","xp11","xp12"], function(v) {
+    let xp=Math.max(v.xp1,v.xp2,v.xp3,v.xp4,v.xp5,v.xp6,v.xp7,v.xp8,v.xp9,v.xp10,v.xp11,v.xp12);
+    switch (xp) {
+        default:
+          setAttrs({"xp":0});
+          break;
+        case 1:  setAttrs({"xp":xp,"xp1":1}); break;
+        case 2:  setAttrs({"xp":xp,"xp1":1,"xp2":2});break;
+        case 3:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3});break;
+        case 4:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4});break;
+        case 5:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5});break;
+        case 6:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6});break;
+        case 7:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7});break;
+        case 8:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7,"xp8":8});break;
+        case 9:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7,"xp8":8,"xp9":9});break;
+        case 10: setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7,"xp8":8,"xp9":9,"xp10":10});break;
+        case 11: setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7,"xp8":8,"xp9":9,"xp10":10,"xp11":11});break;
+        case 12: setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7,"xp8":8,"xp9":9,"xp10":10,"xp11":11,"xp12":12});break;
+    }
+  })
+})
+
+</script>

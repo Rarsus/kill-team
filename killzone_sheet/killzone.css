@@ -1,18 +1,131 @@
-input {
-  width: 95%;
-  border-width: 0px;
-  border-bottom-width: 2px;
-  border-bottom-color: black;
-  border-radius: 5px;
+@import url('https://fonts.cdnfonts.com/css/gunplay');
+@import url('https://fonts.cdnfonts.com/css/minion-pro');
+
+.charsheet {
+	font-family: 'Gunplay';
+  background-color: white;
 }
+
+.charsheet label {
+  display: inline-block;
+  font-size: 1em;
+  padding-bottom: 0px;
+  padding-right: 0px;
+  margin: 0;
+}
+
+.charsheet input {
+  width: 100%;
+  border-width: 0px;
+  font-family: 'Minion Pro';
+  font-size: 1em;
+}
+/********************************************************************/
+/* replace checkbox with nicer ones*/
+input[type="checkbox"] {
+  opacity: 0;
+  width: 16px;
+  height: 16px; 
+  position: relative;
+  left: 6px;
+  margin: -10px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+input[type="checkbox"] + span::before {
+  margin-right: 1px;
+  border: solid 1px #a8a8a8;
+  line-height: 14px;
+  text-align: center;
+  display: inline-block;
+  vertical-align: middle;
+  
+  -moz-box-shadow: 0 0 2px #ccc;
+  -webkit-box-shadow: 0 0 2px #ccc;
+  box-shadow: 0 0 2px #ccc;
+  
+}
+
+input[type="checkbox"].sheet-yellow + span::before {
+  margin-right: 1px;
+  border: solid 2px orange;
+  line-height: 14px;
+  text-align: center;
+  display: inline-block;
+  vertical-align: middle;
+  
+  -moz-box-shadow: 0 0 2px #ccc;
+  -webkit-box-shadow: 0 0 2px #ccc;
+  box-shadow: 0 0 2px #ccc;
+  
+}
+
+/* Fake checkbox */
+input[type="checkbox"] + span::before {
+  position:relative;
+  content: "";
+  opacity: 1;
+  width: 14px;
+  height: 14px;
+  font-size: 12px;
+  
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+}
+
+input[type="checkbox"]:checked + span::before {
+  content: "X";
+  
+  -moz-box-shadow: 0 0 2px transparent;
+  -webkit-box-shadow: 0 0 2px transparent;
+  box-shadow: 0 0 2px transparent;
+}
+
+
+/********************************************************************/
+.sheet-auto-expand {
+	position: relative;
+	cursor: text;
+	word-wrap: break-word;
+}
+.sheet-auto-expand span {
+	visibility: hidden;
+	white-space: pre-wrap;
+	display: block;
+}
+.sheet-auto-expand textarea {
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	margin: 0;
+	overflow: hidden;
+	resize: none;
+        min-height:18px;
+	height: 100%;
+	width: 100%;
+	display: block;
+	box-sizing: border-box;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	letter-spacing: inherit;
+	padding: inherit;
+	text-align: inherit;
+	text-transform: inherit;
+  font-family: 'Minion Pro';
+  border: none;
+}
+/********************************************************************/
 
 .sheet-battleblock {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: auto auto  auto  auto auto auto;
-/*    grid-template-rows: 25px 50px 100px 250px 50px 50px 100px 25px; */
     justify-content: center;
-    row-gap: 10px;
+    /* row-gap: 10px; */
     grid-template-areas:
       " base"
       "char_info"
@@ -90,8 +203,7 @@ input {
       border-top: black solid 2px;
       border-bottom: black solid 2px;
     }
-  /*  label {padding:0px;margin: 0px;} */
-    .sheet-tableheader>label{display:contents; text-align:center;}
+    .sheet-tableheader>label{display:contents;text-align:center;}
     
     .sheet-textleft {text-align: left;}
     div.sheet-grid {
