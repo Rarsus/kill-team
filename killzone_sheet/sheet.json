@@ -4,5 +4,14 @@
 	"authors": "Olav Ceulemans",
 	"preview": "killzone.jpg",
 	"roll20userid": "5625037",
-	"instructions": ""
+	"instructions": "",
+	"useroptions": [
+		{
+			"attribute": "attr_new_recruit",
+            "displayname": "New Recruit",
+            "type": "checkbox",
+			"default": "1",
+            "description": "When setting up a default sheet, the character is marked as a new recruit"
+		}
+	]
 }
