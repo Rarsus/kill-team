@@ -1,2 +1,3 @@
-# killzone
-Contains the custom Roll20 killzone character sheet
+# Kill Team sheets
+
+Contains the custom Roll20 **Kill Team** character sheet
