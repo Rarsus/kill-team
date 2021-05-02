@@ -1,0 +1,74 @@
+<div class="command_roster">
+    <div class="command_roster_header">
+        Command Roster
+    </div>
+
+    <div class="command_roster_info">
+    <!--div.command_roster_info {
+            display: grid;
+            grid-area: "command_roster_info";
+            grid-template-rows: repeat(5, auto);
+            grid-template-columns: 3fr 5fr 5fr 3fr 5fr; }  -->
+<!-- ROW 1 -->
+        <div class="pname orange"><label>PLAYER NAME</label></div>
+        <div class="pname_input gray"  ><input type="text" name="attr_player_name"></div>
+        <div class="resources orange center valign"><label>RESOURCES</label></div>
+        <div class="kt_force orange"><label>CURRENT KILL TEAM'S FORCE</label></div>
+        <div class="kt_force_input  gray_no_border_right"  ><input type="number" name="attr_kill_team_points"><label>Points</label></div>
+
+<!-- ROW 2 -->
+    <div class="faction orange"><label>faction</label></div>
+    <div class="faction_input gray"  ><input type="text" name="attr_faction"></div>
+    <div class="intel gray_no_border_right"><label>Intelligence </label></div>
+    <div class="intel_input gray"><input type=number name="attr_intel"></div>
+    <div class="orange kt_name_header"><label>CURRENT KILL TEAM'S NAME</label></div>
+    <div class="kt_name_input gray_no_border_right"  ><input type="text" name="attr_kill_team_name"></div>
+
+<!-- ROW 3 -->
+    <div class="mission orange"><label>mission</label></div>
+    <div class="mission_input gray"><input type="text" name="attr_mission"></div>
+    <div class="materiel gray_no_border_right"><label>Materiel </label></div>
+    <div class="materiel_input gray"><input type=number name="attr_materiel"></div>
+    
+<!-- ROW 4 -->
+    <div class="background orange"><label>background</label></div>
+    <div class="background_input gray"  ><input type="text" name="attr_background"></div>
+    <div class="morale gray_no_border_right"><label>Morale </label></div>
+    <div class="gray morale_input"><input type=text name="attr_morale"></div>
+
+<!-- ROW 5 -->
+    <div class="quirk orange"><label>squad quirk</label></div>
+    <div class="quirk_input gray"  ><input type="text" name="attr_quirck"></div>
+    <div class="territory gray_no_border_right"><label>Territory </label></div>
+    <div class="territory_input gray"><input class="input50" type=text name="attr_territory"></div>
+
+</div>
+
+    <div class="command_roster_details">
+        <div class="orange"><label>Name</label></div>
+        <div class="orange"><label>Model Type</label></div>
+        <div class="orange"><label>Wargear</label></div>
+        <div class="orange"><label>Exp</label></div>
+        <div class="orange"><label>Specialism/Abilities</label></div>
+        <div class="orange"><label>Demeanor</label></div>
+        <div class="orange"><label>Pts.</label></div>
+    </div>
+</div>
+
+
+
+<script type="text/worker">
+
+        on("sheet:opened change:character_name", function() {
+            getAttrs(["character_name"], function(v) {
+                let charname = String(values.character_name).toLowerCase();
+                if ( charname.startsWith('command roster')  ) {
+                    console.log "set \"show_command_roster\":on";
+                    setAttrs("show_command_roster":"on");
+                }
+            })
+        })
+
+
+
+</script>

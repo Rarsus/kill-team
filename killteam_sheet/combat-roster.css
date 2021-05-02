@@ -1,0 +1,119 @@
+@import url('https://fonts.cdnfonts.com/css/gunplay');
+@import url('https://fonts.cdnfonts.com/css/minion-pro');
+
+div.orange {
+    background-color: #ff4400;
+    border-bottom: white solid 3px;
+    border-right: white solid 3px;
+    text-transform: uppercase;
+    justify-content: center;
+}
+div.orange label {
+    text-align: right;
+    text-transform: uppercase;
+    justify-content: center;
+
+}
+div.center label {text-align: center; justify-content: center;}
+
+div.gray {
+    font-family: "minion pro";
+    background-color: lightgray;
+    text-align: left;
+    justify-content: center;
+    border-bottom: white solid 3px;
+    border-right: white solid 3px;
+}
+
+div.gray_no_border_right {
+    font-family: "minion pro";
+    background-color: lightgray;
+    text-align: left;
+    justify-content: center;
+    border-bottom: white solid 3px;
+}
+
+div.gray input, div.gray_no_border_right input {
+    display: inline;
+    width: 100%;
+    border: none;
+    background-color: transparent;
+    text-align: left;
+}
+
+div.gray label, div.gray_no_border_right label {
+    display: inline;
+    font-family: "gunplay";
+    font-size: smaller;
+    text-transform: uppercase;
+}
+
+.command_roster {
+    display: grid;
+    grid-template: auto auto auto / 1fr;
+    grid-template-areas:
+        "command_roster_header"
+        "command_roster_info"
+        "command_roster_details";
+    row-gap: 25px;
+    font-family: "gunplay"
+
+}
+
+div.command_roster_header {
+    grid-area: "command_roster_header";
+    font-size: xx-large;
+    text-transform: uppercase;
+    justify-content: center;
+    text-align: center;
+    display: block;
+    color: #ff4400;
+    border-bottom: 2px solid #ff4400;
+}
+
+.command_roster_info {
+    display: grid;
+    grid-area: "command_roster_info";
+    grid-template-rows: 2fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 3fr 5fr 2fr 3fr 3fr 5fr;
+}
+ 
+.pname              {grid-column: 1; grid-row: 1 ;                              }
+.pname_input        {grid-column: 2; grid-row: 1;                               }
+.resources          {grid-column-start: 3; grid-column-end: span 2; grid-row: 1;}
+.kt_force           {grid-column: 5; grid-row: 1;                               }
+.kt_force_input     {grid-column: 6; grid-row: 1;                               }
+
+.faction            { grid-column: 1; grid-row: 2;                              }
+.faction_input      { grid-column: 2; grid-row: 2;                              }
+.kt_name_header     { grid-column: 5; grid-row-start: 2;grid-row-end: span 2;   }
+.kt_name_input      { grid-column: 6; grid-row-start: 2;grid-row-end: span 2;   }
+
+.intel              { grid-column: 3; grid-row: 2;                              }
+.intel_input        { grid-column: 4; grid-row: 2;                              }
+
+
+
+.mission            { grid-column: 1; grid-row: 3;                              }
+.mission_input      { grid-column: 2; grid-row: 3;                              }
+.materiel           { grid-column: 3; grid-row: 3;                              }
+.materiel_input     { grid-column: 4; grid-row: 3;                              }
+
+.background         { grid-column: 1; grid-row: 4;                              }
+.background_input   { grid-column: 2; grid-row: 4;                              }
+.morale             { grid-column: 3; grid-row: 4;                              }
+.morale_input       { grid-column: 4; grid-row: 4;                              }
+
+.quirk              { grid-column: 1; grid-row: 5;                              }
+.quirk_input        { grid-column: 2; grid-row: 5;                              }
+.territory          { grid-column: 3; grid-row: 5;                              }
+.territory_input    { grid-column: 4; grid-row: 5;                              }
+
+.empty {grid-area: empty;}
+
+div.command_roster_details {
+    display: grid;
+    grid-area: "command_roster_details";
+    grid-template-rows: repeat(27, auto);
+    grid-template-columns: 4fr 4fr 4fr 1fr 4fr 3fr 1fr;
+}
