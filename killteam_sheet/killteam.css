@@ -13,26 +13,26 @@
 
 
 /* #BASE FORMATTING */
-.charsheet {
-	font-family: 'Gunplay';
-  background-color: white;
-}
+  .charsheet {
+    font-family: 'Gunplay';
+    background-color: white;
+  }
 
-.charsheet label {
-  display: inline-block;
-  text-transform: uppercase;
-  font-size: 1em;
-  margin: 0;
-}
+  .charsheet label {
+    /* display: inline-block; */
+    text-transform: uppercase;
+    font-size: 1em;
+    margin: 0;
+  }
 
-.charsheet input {
-  width: 100%;
-  border-width: 0px;
-  font-family: 'Minion Pro';
-  font-size: 1em;
-}
+  .charsheet input {
+    width: 100%;
+    border-width: 0px;
+    font-family: 'Minion Pro';
+    font-size: 1em;
+  }
 
-/* START replace checkbox with nicer ones*/
+/* START #CHECKBOX_REPLACE*/
   input[type="checkbox"] {
     opacity: 0;
     width: 16px;
@@ -93,275 +93,154 @@
     -webkit-box-shadow: 0 0 2px transparent;
     box-shadow: 0 0 2px transparent;
   }
-/* END replace checkbox with nicer ones*/
+/* END #CHECKBOX_REPLACE*/
 
 /*START #AUTOEXPAND section*/
-.auto-expand {
-	position: relative;
-	cursor: text;
-	word-wrap: break-word;
-}
-.auto-expand span {
-	visibility: hidden;
-	white-space: pre-wrap;
-	display: block;
-}
-.auto-expand textarea {
-	position: absolute;
-	z-index: 1;
-	top: 0;
-	left: 0;
-	margin: 0;
-	overflow: hidden;
-	resize: none;
-        min-height:18px;
-	height: 100%;
-	width: 100%;
-	display: block;
-	box-sizing: border-box;
-	background: transparent;
-	color: inherit;
-	font: inherit;
-	letter-spacing: inherit;
-	padding: inherit;
-	text-align: inherit;
-	text-transform: inherit;
-  font-family: 'Minion Pro';
-  border: none;
-}
+  .auto-expand {
+    position: relative;
+    cursor: text;
+    word-wrap: break-word;
+  }
+  .auto-expand span {
+    visibility: hidden;
+    white-space: pre-wrap;
+    display: block;
+  }
+  .auto-expand textarea {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    margin: 0;
+    overflow: hidden;
+    resize: none;
+          min-height:18px;
+    height: 100%;
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    padding: inherit;
+    text-align: inherit;
+    text-transform: inherit;
+    font-family: 'Minion Pro';
+    border: none;
+  }
 /*END #AUTOEXPAND section*/
 
-.battleblock {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto  auto  auto auto auto;
-    justify-content: center;
-    /* row-gap: 10px; */
-    grid-template-areas:
-      " base"
-      "char_info"
-      "weapon_info"
-      "abilities"
-      "attributes"
-      "stats";
-  }
 
-  .base {
-    grid-area: "base";
-    display: grid;
-    grid-template-columns: 4fr 1fr;
-    grid-template-rows: 1fr;
-    grid-template-areas: "type points";
-  }
-
-    .type {
-      grid-area: "type";
-    }
-    .points {
-      grid-area: "points";
-      text-align: right;
-      text-transform: capitalize;
-    }
-
-  .char_info {
-    display: grid;
-    grid-template-columns: 4fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-    grid-template-rows: auto auto;
-    grid-template-areas:
-        "h_name h_m h_ws h_bs h_s h_t h_w h_a h_ld h_sv"
-        "name m ws bs s t w a ld sv";
-    grid-area: "char_info"; }
-
-    .h_name   {grid-area: "h_name";} 
-    .h_m      {grid-area: "h_m" ;}
-    .h_ws     {grid-area: "h_ws";}
-    .h_bs     {grid-area: "h_bs";}
-    .h_s      {grid-area: "h_s" ;}
-    .h_t      {grid-area: "h_t" ;}
-    .h_w      {grid-area: "h_w" ;}
-    .h_a      {grid-area: "h_a" ;}
-    .h_ld     {grid-area: "h_ld";}
-    .h_sv     {grid-area: "h_sv";}
-    
-    .name   {grid-area: "name";}
-    .m      {grid-area: "m";}
-    .ws     {grid-area: "ws";}
-    .bs     {grid-area: "bs";}
-    .s      {grid-area: "s" ;}
-    .t      {grid-area: "t" ;}
-    .w      {grid-area: "w" ;}
-    .a      {grid-area: "a" ;}
-    .ld     {grid-area: "ld";}
-    .sv     {grid-area: "sv";}
-
-  .weapon_info { 
-    display: grid;
-    grid-template-columns: 3fr 1fr 3fr 1fr 1fr 1fr 3fr;
-    grid-template-rows: auto auto auto auto auto auto;
-    grid-template-areas:
-      "w_name w_range w_type w_s w_ap w_d w_abilities"
-      "w1_name w1_range w1_type w1_s w1_ap w1_d w1_abilities"
-      "w2_name w2_range w2_type w2_s w2_ap w2_d w2_abilities"
-      "w3_name w3_range w3_type w3_s w3_ap w3_d w3_abilities"
-      "w4_name w4_range w4_type w4_s w4_ap w4_d w4_abilities"
-      "w5_name w5_range w5_type w5_s w5_ap w5_d w5_abilities";
-    grid-area: weapon_info;
-  }
-  
-    .tableheader {
-      text-align: center;
-      background-color: #ff4400;
-      border-top: black solid 2px;
-      border-bottom: black solid 2px;
-    }
-    .tableheader>label{display:contents;text-align:center;}
-    
-    .textleft {text-align: left;}
-    div.grid {
-      text-align: left;
-      background-color:lightgrey;
-      border-bottom: white solid 3px;
-      border-right: white solid 3px;
-    }
-    div.grid_end { border-right: none;}
-
-    div.grid>input {
-      background-color: inherit;
-      border: none;}
-
-    .w_name       {grid-area: w_name;}
-    .w_range      {grid-area: w_range;}
-    .w_type       {grid-area: w_type;}
-    .w_s          {grid-area: w_s;}
-    .w_ap         {grid-area: w_ap;}
-    .w_d          {grid-area: w_d;}
-    .w_abilities  {grid-area: w_abilities;}
-   
-    .w1_name       {grid-area: w1_name;}
-    .w1_range      {grid-area: w1_range;}
-    .w1_type       {grid-area: w1_type;}
-    .w1_s          {grid-area: w1_s;}
-    .w1_ap         {grid-area: w1_ap;}
-    .w1_d          {grid-area: w1_d;}
-    .w1_abilities  {grid-area: w1_abilities;}
-   
-    .w2_name       {grid-area: w2_name;}
-    .w2_range      {grid-area: w2_range;}
-    .w2_type       {grid-area: w2_type;}
-    .w2_s          {grid-area: w2_s;}
-    .w2_ap         {grid-area: w2_ap;}
-    .w2_d          {grid-area: w2_d;}
-    .w2_abilities  {grid-area: w2_abilities;}
-   
-    .w3_name       {grid-area: w3_name;}
-    .w3_range      {grid-area: w3_range;}
-    .w3_type       {grid-area: w3_type;}
-    .w3_s          {grid-area: w3_s;}
-    .w3_ap         {grid-area: w3_ap;}
-    .w3_d          {grid-area: w3_d;}
-    .w3_abilities  {grid-area: w3_abilities;}
-   
-    .w4_name       {grid-area: w4_name;}
-    .w4_range      {grid-area: w4_range;}
-    .w4_type       {grid-area: w4_type;}
-    .w4_s          {grid-area: w4_s;}
-    .w4_ap         {grid-area: w4_ap;}
-    .w4_d          {grid-area: w4_d;}
-    .w4_abilities  {grid-area: w4_abilities;}
-
-    .w5_name       {grid-area: w5_name;}
-    .w5_range      {grid-area: w5_range;}
-    .w5_type       {grid-area: w5_type;}
-    .w5_s          {grid-area: w5_s;}
-    .w5_ap         {grid-area: w5_ap;}
-    .w5_d          {grid-area: w5_d;}
-    .w5_abilities  {grid-area: w5_abilities;}
- 
-  .abilities { grid-area: abilities; }
-  
-  .attributes {
-    display: grid;
-    grid-template-columns: 3fr 3fr;
-    grid-template-rows: auto;
-    gap: 0px 0px;
-    grid-template-areas:
-      "specialism demeanor";
-    grid-area: attributes;
-  }
-  
-  .specialism { grid-area: specialism; }
-  
-  .demeanor { grid-area: demeanor; }
-  
-  .stats {
-    display: grid;
-    grid-template-columns: 3fr 1fr 1fr 1fr;
-    grid-template-rows: auto;
-    gap: 0px 0px;
-    grid-template-areas:
-      "xp flesh convalescence new_recruit";
-    grid-area: stats;
-  }
-
-  .xp { grid-area: "xp"; }
-  
-  .flesh { grid-area: "flesh"; }
-  
-  .convalescence { grid-area: "convalescence"; }
-  
-  .new_recruit { grid-area: "new_recruit"; }
-
-
-  /* #COMMAND_ROSTER_FORMATTING */
+  /* #FORMATTING */
     div.orange {
       background-color: #ff4400;
-      border-bottom: white solid 3px;
-      border-right: white solid 3px;
       text-transform: uppercase;
       justify-content: center;
     }
-    div.orange label {
-        text-align: right;
+
+    .white-border-br {
+      border-bottom: white solid 3px;
+      border-right: white solid 3px;
+    }
+    .white-border-b {
+      border-bottom: white solid 3px;
+    }
+
+    .black_border_bottom_top {
+      border-bottom: black solid 3px;
+      border-top: black solid 3px;
+    }
+
+    /* div.orange label {
         text-transform: uppercase;
         justify-content: center;
-    }
+    } */
+
     div.center label {
-      text-align: center; justify-content: center;
+      text-align: center;
+      justify-content: center;
+    }
+
+    div.right label {
+      text-align: right;
+      justify-content: right;
     }
 
     div.gray {
         font-family: "minion pro";
         background-color: lightgray;
-        text-align: left;
-        justify-content: center;
-        border-bottom: white solid 3px;
-        border-right: white solid 3px;
     }
+    
+      div.gray label {
+          display: inline;
+          font-family: "gunplay";
+          font-size: smaller;
+          text-transform: uppercase;
+      }
 
-    div.gray_no_border_right {
-        font-family: "minion pro";
-        background-color: lightgray;
-        text-align: left;
-        justify-content: center;
-        border-bottom: white solid 3px;
-    }
+      div.gray input {
+          display: inline;
+          width: 100%;
+          border: none;
+          background-color: transparent;
+          text-align: left;
+      }
 
-    div.gray input, div.gray_no_border_right input {
-        display: inline;
-        width: 100%;
-        border: none;
-        background-color: transparent;
-        text-align: left;
-    }
-
-    div.gray label, div.gray_no_border_right label {
-        display: inline;
-        font-family: "gunplay";
-        font-size: smaller;
+      .big_orange_header {
+        font-size: xx-large;
         text-transform: uppercase;
-    }
+        justify-content: center;
+        text-align: center;
+        /* display: block; */
+        color: #ff4400;
+        border-bottom: 2px solid #ff4400; 
 
-  /* #COMMAND ROSTER GRID DEFINITION */
+      }
+/* #CHARACTERSHEET BLOCK*/
+.battleblock {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto  auto  auto auto auto;
+  justify-content: center;
+  grid-template-areas:
+    "base"
+    "char_info"
+    "weapon_info"
+    "abilities"
+    "attributes"
+    "stats";    }
+
+  .base {
+    grid-area: "base";
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    grid-template-rows: 1fr; }
+  .char_info {
+    display: grid;
+    grid-template-columns: 4fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    grid-area: "char_info"; }
+  .weapon_info { 
+    display: grid;
+    grid-template-columns: 3fr 1fr 3fr 1fr 1fr 1fr 3fr;
+    grid-template-rows: auto auto auto auto auto auto;
+    grid-area: "weapon_info"; }
+  .abilities { grid-area: abilities; }
+  .attributes {
+    display: grid;
+    grid-template-columns: 3fr 3fr;
+    grid-template-rows: auto;
+    gap: 0px 0px;
+    grid-area: "attributes"; }
+  .stats {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 0px 0px;
+    grid-area: "stats"; }
+
+/* #COMMAND ROSTER GRID DEFINITION */
   .command_roster {
     display: grid;
     grid-template: auto auto auto / 1fr;
@@ -369,19 +248,9 @@
         "command_roster_header"
         "command_roster_info"
         "command_roster_details";
-    row-gap: 25px;
-    font-family: "gunplay"
-  }
-    div.command_roster_header {
-        grid-area: "command_roster_header";
-        font-size: xx-large;
-        text-transform: uppercase;
-        justify-content: center;
-        text-align: center;
-        display: block;
-        color: #ff4400;
-        border-bottom: 2px solid #ff4400;
-    }
+    row-gap: 25px; }
+    /* font-family: "gunplay";   } */
+  .command_roster_header { grid-area: "command_roster_header"; }
 
   .command_roster_info {
       display: grid;
@@ -389,30 +258,30 @@
       grid-template-rows: 2fr 1fr 1fr 1fr 1fr;
       grid-template-columns: 3fr 5fr 2fr 3fr 3fr 5fr;
   }
-  /* #COMMAND_ROSTER_INFOR_ROW 1 */
+  /* #COMMAND_ROSTER_INFO_ROW 1 */
     .pname              {grid-column: 1; grid-row: 1 ;                              }
     .pname_input        {grid-column: 2; grid-row: 1;                               }
     .resources          {grid-column-start: 3; grid-column-end: span 2; grid-row: 1;}
     .kt_force           {grid-column: 5; grid-row: 1;                               }
     .kt_force_input     {grid-column: 6; grid-row: 1;                               }
-  /* #COMMAND_ROSTER_INFOR_ROW 2 */
+  /* #COMMAND_ROSTER_INFO_ROW 2 */
     .faction            { grid-column: 1; grid-row: 2;                              }
     .faction_input      { grid-column: 2; grid-row: 2;                              }
     .intel              { grid-column: 3; grid-row: 2;                              }
     .intel_input        { grid-column: 4; grid-row: 2;                              }
     .kt_name_header     { grid-column: 5; grid-row-start: 2;grid-row-end: span 2;   }
     .kt_name_input      { grid-column: 6; grid-row-start: 2;grid-row-end: span 2;   }
-  /* #COMMAND_ROSTER_INFOR_ROW 3 */
+  /* #COMMAND_ROSTER_INFO_ROW 3 */
     .mission            { grid-column: 1; grid-row: 3;                              }
     .mission_input      { grid-column: 2; grid-row: 3;                              }
     .materiel           { grid-column: 3; grid-row: 3;                              }
     .materiel_input     { grid-column: 4; grid-row: 3;                              }
-  /* #COMMAND_ROSTER_INFOR_ROW 4 */
+  /* #COMMAND_ROSTER_INFO_ROW 4 */
     .background         { grid-column: 1; grid-row: 4;                              }
     .background_input   { grid-column: 2; grid-row: 4;                              }
     .morale             { grid-column: 3; grid-row: 4;                              }
     .morale_input       { grid-column: 4; grid-row: 4;                              }
-  /* #COMMAND_ROSTER_INFOR_ROW 5 */
+  /* #COMMAND_ROSTER_INFO_ROW 5 */
     .quirk              { grid-column: 1; grid-row: 5;                              }
     .quirk_input        { grid-column: 2; grid-row: 5;                              }
     .territory          { grid-column: 3; grid-row: 5;                              }
@@ -422,5 +291,5 @@
     display: grid;
     grid-area: "command_roster_details";
     grid-template-columns: 4fr 4fr 4fr 1fr 4fr 3fr 1fr;
-    grid-auto-rows: 1fr;
+    grid-auto-rows: auto;
   }
