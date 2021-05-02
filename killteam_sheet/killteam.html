@@ -1,140 +1,147 @@
+<input type="hidden" class="sheet_toggle" name="attr_sheetTab"  />
 
-<input type=hidden class="sheet-toggle" name="attr-sheet_toggle" value="character_sheet">
+<!-- #SHEETSELECTOR START  -->
+  <div class="sheet_selector">
+    <header>Select the Sheet Type</header>
+      <button type="action" name="act_character_sheet" >Character Sheet</button>
+      <button type="action" name="act_command_roster_sheet" >Command Roster</button>
+  </div>
+<!-- #SHEETSELECTOR END  -->
 
 <!-- #CHARACTER SHEET START  -->
   <div class="character_sheet">
-    <div class="sheet-battleblock">
-      <div class="sheet-base">
-        <div class="sheet-type"><label><span name="attr_character_name" /></label></div>
-        <div class="sheet-points"><label><input type=number min=0 step=1 value=0 name="attr_points" /> POINTS</label></div>
+    <div class="battleblock">
+      <div class="base">
+        <div class="type"><label><span name="attr_character_name" /></label></div>
+        <div class="points"><label><input type=number min=0 step=1 value=0 name="attr_points" /> POINTS</label></div>
       </div>
-      <div class="sheet-char_info">
-        <div class="sheet-h_name sheet-tableheader sheet-textleft"><label>NAME</label></div>
-        <div class="sheet-h_m sheet-tableheader" ><label>M</label></div>
-        <div class="sheet-h_ws sheet-tableheader"><label>WS</label></div>
-        <div class="sheet-h_bs sheet-tableheader"><label>BS</label></div>
-        <div class="sheet-h_s sheet-tableheader" ><label>S</label></div>
-        <div class="sheet-h_t sheet-tableheader" ><label>T</label></div>
-        <div class="sheet-h_w sheet-tableheader" ><label>W</label></div>
-        <div class="sheet-h_a sheet-tableheader" ><label>A</label></div>
-        <div class="sheet-h_ld sheet-tableheader"><label>Ld</label></div>
-        <div class="sheet-h_sv sheet-tableheader"><label>Sv</label></div>
+      <div class="char_info">
+        <div class="h_name tableheader textleft"><label>NAME</label></div>
+        <div class="h_m tableheader" ><label>M</label></div>
+        <div class="h_ws tableheader"><label>WS</label></div>
+        <div class="h_bs tableheader"><label>BS</label></div>
+        <div class="h_s tableheader" ><label>S</label></div>
+        <div class="h_t tableheader" ><label>T</label></div>
+        <div class="h_w tableheader" ><label>W</label></div>
+        <div class="h_a tableheader" ><label>A</label></div>
+        <div class="h_ld tableheader"><label>Ld</label></div>
+        <div class="h_sv tableheader"><label>Sv</label></div>
 
-        <div class="sheet-grid sheet-name"><input type=text name="attr_character_type"/></div>
-        <div class="sheet-grid sheet-m"><input type=number name=attr_m /></div>
-        <div class="sheet-grid sheet-ws"><input type=number name=attr_ws /></div>
-        <div class="sheet-grid sheet-bs"><input type=number name=attr_bs /></div>
-        <div class="sheet-grid sheet-s"><input type=number name=attr_s /></div>
-        <div class="sheet-grid sheet-t"><input type=number name=attr_t /></div>
-        <div class="sheet-grid sheet-w"><input type=number name=attr_w /></div>
-        <div class="sheet-grid sheet-a"><input type=number name=attr_a /></div>
-        <div class="sheet-grid sheet-ld"><input type=number name=attr_ld /></div>
-        <div class="sheet-grid sheet-grid_end sheet-sv"><input type=number name=attr_sv /></div>
+        <div class="grid name"><input type=text name="attr_character_type"/></div>
+        <div class="grid m"><input type=number name=attr_m /></div>
+        <div class="grid ws"><input type=number name=attr_ws /></div>
+        <div class="grid bs"><input type=number name=attr_bs /></div>
+        <div class="grid s"><input type=number name=attr_s /></div>
+        <div class="grid t"><input type=number name=attr_t /></div>
+        <div class="grid w"><input type=number name=attr_w /></div>
+        <div class="grid a"><input type=number name=attr_a /></div>
+        <div class="grid ld"><input type=number name=attr_ld /></div>
+        <div class="grid grid_end sv"><input type=number name=attr_sv /></div>
       </div>
-      <div class="sheet-weapon_info">
-        <div class="sheet-w_name sheet-tableheader sheet-textleft"><label>NAME</label></div>
-        <div class="sheet-w_range sheet-tableheader"              ><label>RANGE</label></div>
-        <div class="sheet-w_type sheet-tableheader sheet-textleft"><label>TYPE</label></div>
-        <div class="sheet-w_s sheet-tableheader"                  ><label>S</label></div>
-        <div class="sheet-w_ap sheet-tableheader"                 ><label>AP</label></div>
-        <div class="sheet-w_d sheet-tableheader"                  ><label>D</label></div>
-        <div class="sheet-w_abilities sheet-tableheader sheet-textleft"><label>ABILITIES</label></div>
+      <div class="weapon_info">
+        <div class="w_name tableheader textleft"><label>NAME</label></div>
+        <div class="w_range tableheader"              ><label>RANGE</label></div>
+        <div class="w_type tableheader textleft"><label>TYPE</label></div>
+        <div class="w_s tableheader"                  ><label>S</label></div>
+        <div class="w_ap tableheader"                 ><label>AP</label></div>
+        <div class="w_d tableheader"                  ><label>D</label></div>
+        <div class="w_abilities tableheader textleft"><label>ABILITIES</label></div>
 
-        <div class="sheet-grid sheet-w1_name"     ><input type=text   name="attr_w1name" /></div>
-        <div class="sheet-grid sheet-w1_range"    ><input type=text name="attr_w1range" /></div>
-        <div class="sheet-grid sheet-w1_type"     ><input type=text   name="attr_w1type" /></div>
-        <div class="sheet-grid sheet-w1_s"        ><input type=text name="attr_w1s" /></div>
-        <div class="sheet-grid sheet-w1_ap"       ><input type=text name="attr_w1ap" /></div>
-        <div class="sheet-grid sheet-w1_d"        ><input type=text   name="attr_w1d" /></div>
-        <div class="sheet-grid sheet-grid_end sheet-w1_abilities">
-            <div class="sheet-auto-expand">
+        <div class="grid w1_name"     ><input type=text   name="attr_w1name" /></div>
+        <div class="grid w1_range"    ><input type=text name="attr_w1range" /></div>
+        <div class="grid w1_type"     ><input type=text   name="attr_w1type" /></div>
+        <div class="grid w1_s"        ><input type=text name="attr_w1s" /></div>
+        <div class="grid w1_ap"       ><input type=text name="attr_w1ap" /></div>
+        <div class="grid w1_d"        ><input type=text   name="attr_w1d" /></div>
+        <div class="grid grid_end w1_abilities">
+            <div class="auto-expand">
               <span name="attr_w3abilities"></span>
               <textarea name="attr_w1abilities" ></textarea>
             </div> 
         </div>
 
 
-        <div class="sheet-grid sheet-w2_name"     ><input type=text   name="attr_w2name" /></div>
-        <div class="sheet-grid sheet-w2_range"    ><input type=text name="attr_w2range" /></div>
-        <div class="sheet-grid sheet-w2_type"     ><input type=text   name="attr_w2type" /></div>
-        <div class="sheet-grid sheet-w2_s"        ><input type=text name="attr_w2s" /></div>
-        <div class="sheet-grid sheet-w2_ap"       ><input type=text name="attr_w2ap" /></div>
-        <div class="sheet-grid sheet-w2_d"        ><input type=text   name="attr_w2d" /></div>
-        <div class="sheet-grid sheet-grid_end sheet-w2_abilities">
-            <div class="sheet-auto-expand">
+        <div class="grid w2_name"     ><input type=text   name="attr_w2name" /></div>
+        <div class="grid w2_range"    ><input type=text name="attr_w2range" /></div>
+        <div class="grid w2_type"     ><input type=text   name="attr_w2type" /></div>
+        <div class="grid w2_s"        ><input type=text name="attr_w2s" /></div>
+        <div class="grid w2_ap"       ><input type=text name="attr_w2ap" /></div>
+        <div class="grid w2_d"        ><input type=text   name="attr_w2d" /></div>
+        <div class="grid grid_end w2_abilities">
+            <div class="auto-expand">
               <span name="attr_w2abilities"></span>
               <textarea name="attr_w2abilities" ></textarea>
             </div> 
         </div>
 
-        <div class="sheet-grid sheet-w3_name"     ><input type=text   name="attr_w3name" /></div>
-        <div class="sheet-grid sheet-w3_range"    ><input type=text name="attr_w3range" /></div>
-        <div class="sheet-grid sheet-w3_type"     ><input type=text   name="attr_w3type" /></div>
-        <div class="sheet-grid sheet-w3_s"        ><input type=text name="attr_w3s" /></div>
-        <div class="sheet-grid sheet-w3_ap"       ><input type=text name="attr_w3ap" /></div>
-        <div class="sheet-grid sheet-w3_d"        ><input type=text   name="attr_w3d" /></div>
-        <div class="sheet-grid sheet-grid_end sheet-w3_abilities">
-            <div class="sheet-auto-expand">
+        <div class="grid w3_name"     ><input type=text   name="attr_w3name" /></div>
+        <div class="grid w3_range"    ><input type=text name="attr_w3range" /></div>
+        <div class="grid w3_type"     ><input type=text   name="attr_w3type" /></div>
+        <div class="grid w3_s"        ><input type=text name="attr_w3s" /></div>
+        <div class="grid w3_ap"       ><input type=text name="attr_w3ap" /></div>
+        <div class="grid w3_d"        ><input type=text   name="attr_w3d" /></div>
+        <div class="grid grid_end w3_abilities">
+            <div class="auto-expand">
               <span name="attr_w3abilities"></span>
               <textarea name="attr_w3abilities" ></textarea>
             </div> 
         </div>
 
 
-        <div class="sheet-grid sheet-w4_name"     ><input type=text   name="attr_w4name" /></div>
-        <div class="sheet-grid sheet-w4_range"    ><input type=text name="attr_w4range" /></div>
-        <div class="sheet-grid sheet-w4_type"     ><input type=text   name="attr_w4type" /></div>
-        <div class="sheet-grid sheet-w4_s"        ><input type=text name="attr_w4s" /></div>
-        <div class="sheet-grid sheet-w4_ap"       ><input type=text name="attr_w4ap" /></div>
-        <div class="sheet-grid sheet-w4_d"        ><input type=text   name="attr_w4d" /></div>
-        <div class="sheet-grid sheet-grid_end sheet-w4_abilities">
-            <div class="sheet-auto-expand">
+        <div class="grid w4_name"     ><input type=text   name="attr_w4name" /></div>
+        <div class="grid w4_range"    ><input type=text name="attr_w4range" /></div>
+        <div class="grid w4_type"     ><input type=text   name="attr_w4type" /></div>
+        <div class="grid w4_s"        ><input type=text name="attr_w4s" /></div>
+        <div class="grid w4_ap"       ><input type=text name="attr_w4ap" /></div>
+        <div class="grid w4_d"        ><input type=text   name="attr_w4d" /></div>
+        <div class="grid grid_end w4_abilities">
+            <div class="auto-expand">
               <span name="attr_w4abilities"></span>
               <textarea name="attr_w4abilities" ></textarea>
             </div> 
         </div>
 
-        <div class="sheet-grid sheet-w5_name"     ><input type=text   name="attr_w5name" /></div>
-        <div class="sheet-grid sheet-w5_range"    ><input type=text name="attr_w5range" /></div>
-        <div class="sheet-grid sheet-w5_type"     ><input type=text   name="attr_w5type" /></div>
-        <div class="sheet-grid sheet-w5_s"        ><input type=text name="attr_w5s" /></div>
-        <div class="sheet-grid sheet-w5_ap"       ><input type=text name="attr_w5ap" /></div>
-        <div class="sheet-grid sheet-w5_d"        ><input type=text   name="attr_w5d" /></div>
-        <div class="sheet-grid sheet-grid_end sheet-w5_abilities">
-            <div class="sheet-auto-expand">
+        <div class="grid w5_name"     ><input type=text   name="attr_w5name" /></div>
+        <div class="grid w5_range"    ><input type=text name="attr_w5range" /></div>
+        <div class="grid w5_type"     ><input type=text   name="attr_w5type" /></div>
+        <div class="grid w5_s"        ><input type=text name="attr_w5s" /></div>
+        <div class="grid w5_ap"       ><input type=text name="attr_w5ap" /></div>
+        <div class="grid w5_d"        ><input type=text   name="attr_w5d" /></div>
+        <div class="grid grid_end w5_abilities">
+            <div class="auto-expand">
               <span name="attr_w5abilities"></span>
               <textarea name="attr_w5abilities" ></textarea>
             </div> 
           </div>
       </div>
-      <div class="sheet-abilities"><label>ABILITIES</label>
-        <div class="sheet-auto-expand">
+      <div class="abilities"><label>ABILITIES</label>
+        <div class="auto-expand">
           <span name="attr_char_abilities"></span>
           <textarea name="attr_char_abilities" ></textarea>
         </div> 
       </div>
-      <div class="sheet-attributes">
-        <div class="sheet-specialism"><label>SPECIALISM</label><input type=text name="attr_char_specialism"></div>
-        <div class="sheet-demeanor"><label>DEMEANOR</label><input type=text name="attr_char_demeanor"></div>
+      <div class="attributes">
+        <div class="specialism"><label>SPECIALISM</label><input type=text name="attr_char_specialism"></div>
+        <div class="demeanor"><label>DEMEANOR</label><input type=text name="attr_char_demeanor"></div>
       </div>
-      <div class="sheet-stats">
-        <div class="sheet-xp"><label>EXPERIENCE <span name="attr_xp"/></label>
+      <div class="stats">
+        <div class="xp"><label>EXPERIENCE <span name="attr_xp"/></label>
 
             <input type=checkbox name="attr_xp1" value=1><span> </span>
             <input type=checkbox name="attr_xp2" value=2><span> </span>
-            <input class="sheet-yellow" type=checkbox name="attr_xp3" value=3><span> </span>
+            <input class="yellow" type=checkbox name="attr_xp3" value=3><span> </span>
             <input type=checkbox name="attr_xp4" value=4><span> </span>
             <input type=checkbox name="attr_xp5" value=5><span> </span>
             <input type=checkbox name="attr_xp6" value=6><span> </span>
-            <input class="sheet-yellow" type=checkbox name="attr_xp7" value=7><span> </span>
+            <input class="yellow" type=checkbox name="attr_xp7" value=7><span> </span>
             <input type=checkbox name="attr_xp8" value=8><span> </span>
             <input type=checkbox name="attr_xp9" value=9><span> </span>
             <input type=checkbox name="attr_xp10" value=10><span> </span>
             <input type=checkbox name="attr_xp11" value=11><span> </span>
-            <input class="sheet-yellow" type=checkbox name="attr_xp12" value=12><span> </span>
+            <input class="yellow" type=checkbox name="attr_xp12" value=12><span> </span>
 
         </div>
-        <div class="sheet-flesh"><label>FLESH WOUNDS</label>
+        <div class="flesh"><label>FLESH WOUNDS</label>
           <div align=center>
             <input type=checkbox name="attr_wounds1" value=1><span> </span>
             <input type=checkbox name="attr_wounds2" value=2><span> </span>
@@ -142,14 +149,14 @@
           </div>
         </div>
 
-        <div class="sheet-convalescence">
+        <div class="convalescence">
           <label>CONVALESCENCE</label>
           <div align=center>
             <input type=checkbox name="attr_covalenscense" /><span> </span>
           </div>
         </div>
 
-        <div class="sheet-new_recruit">
+        <div class="new_recruit">
           <label>NEW RECRUIT</label>
           <div align=center>
             <input type=checkbox name="attr_new_recruit" /><span> </span>
@@ -162,7 +169,63 @@
 
 <!-- #COMMAND ROSTER SHEET START  -->
   <div class="command_roster_sheet">
-    <h1>PSEUDOCODE</h1>
+    <div class="command_roster">
+        <div class="command_roster_header">
+            Command Roster
+        </div>
+
+        <div class="command_roster_info">
+        <!--div.command_roster_info {
+                display: grid;
+                grid-area: "command_roster_info";
+                grid-template-rows: repeat(5, auto);
+                grid-template-columns: 3fr 5fr 5fr 3fr 5fr; }  -->
+    <!-- ROW 1 -->
+            <div class="pname orange"><label>PLAYER NAME</label></div>
+            <div class="pname_input gray"  ><input type="text" name="attr_player_name"></div>
+            <div class="resources orange center valign"><label>RESOURCES</label></div>
+            <div class="kt_force orange"><label>CURRENT KILL TEAM'S FORCE</label></div>
+            <div class="kt_force_input  gray_no_border_right"  ><input type="number" name="attr_kill_team_points"><label>Points</label></div>
+
+    <!-- ROW 2 -->
+        <div class="faction orange"><label>faction</label></div>
+        <div class="faction_input gray"  ><input type="text" name="attr_faction"></div>
+        <div class="intel gray_no_border_right"><label>Intelligence </label></div>
+        <div class="intel_input gray"><input type=number name="attr_intel"></div>
+        <div class="orange kt_name_header"><label>CURRENT KILL TEAM'S NAME</label></div>
+        <div class="kt_name_input gray_no_border_right"  ><input type="text" name="attr_kill_team_name"></div>
+
+    <!-- ROW 3 -->
+        <div class="mission orange"><label>mission</label></div>
+        <div class="mission_input gray"><input type="text" name="attr_mission"></div>
+        <div class="materiel gray_no_border_right"><label>Materiel </label></div>
+        <div class="materiel_input gray"><input type=number name="attr_materiel"></div>
+        
+    <!-- ROW 4 -->
+        <div class="background orange"><label>background</label></div>
+        <div class="background_input gray"  ><input type="text" name="attr_background"></div>
+        <div class="morale gray_no_border_right"><label>Morale </label></div>
+        <div class="gray morale_input"><input type=text name="attr_morale"></div>
+
+    <!-- ROW 5 -->
+        <div class="quirk orange"><label>squad quirk</label></div>
+        <div class="quirk_input gray"  ><input type="text" name="attr_quirck"></div>
+        <div class="territory gray_no_border_right"><label>Territory </label></div>
+        <div class="territory_input gray"><input class="input50" type=text name="attr_territory"></div>
+
+    </div>
+
+        <div class="command_roster_details">
+            <div class="orange"><label>Name</label></div>
+            <div class="orange"><label>Model Type</label></div>
+            <div class="orange"><label>Wargear</label></div>
+            <div class="orange"><label>Exp</label></div>
+            <div class="orange"><label>Specialism/Abilities</label></div>
+            <div class="orange"><label>Demeanor</label></div>
+            <div class="orange"><label>Pts.</label></div>
+        </div>
+    </div>
+
   </div>
 
 <!-- #COMMAND ROSTER SHEET END  -->
@@ -193,18 +256,17 @@
       })
     })
 
-    on("sheet:opened change:character_name", function() {
-      getAttrs(["character_name"], function(v) {
-        let charname = String(values.character_name).toLowerCase();
-        if ( charname.startsWith('command roster')  ) {
-          console.log "seting `sheet_toggle` to `command_roster_sheet`!";
-          setAttrs("sheet_toggle":"command_roster_sheet");
-        } else {
-          console.log "Setting `sheet_toggle` to `character_sheet`!"
-          setAttrs("sheet_toggle":"character_sheet");
-        }
-      })
-    })
+    const buttonlist = [
+      "character_sheet",
+      "command_roster_sheet"
+    ];
+    buttonlist.forEach(button => {
+        on(`clicked:${button}`, function() {
+            setAttrs({
+                sheetTab: button
+            });
+        });
+    });
 
   </script>
 <!-- #SHEET WORKERS END -->
