@@ -339,7 +339,6 @@
           <div class="gray white-border-b"><input      type=number name="attr_model_pts_16"></div>
       </div>
     </div>
-
   </div>
 
 <!-- #COMMAND ROSTER SHEET END  -->
@@ -347,9 +346,29 @@
 <!--#WEAPON_PROFILE_SHEET START -->
   <div class="weapon_profile_sheet">
     <div class="weapon_profile">
-      <div class="weapon_profile_header big_orange_header">weapon profile</div>
-      <div class="weapon_profile_info orange">stub: weapon profile info</div>
-      <div class="weapon_profile_details gray">stub: weapon profile details</div>
+      <div class="weapon_profile_header big_orange_header">weapon profile: <span name="attr_character_name" /></div>
+      <div class="weapon_profile_info orange">
+        <!-- #WEAPON_PROFILE_INFO HEADER -->
+          <div class="orange black_border_bottom_top">Name</div>
+          <div class="orange black_border_bottom_top">range</div>
+          <div class="orange black_border_bottom_top">type</div>
+          <div class="orange black_border_bottom_top">S</div>
+          <div class="orange black_border_bottom_top">Ap</div>
+          <div class="orange black_border_bottom_top">D</div>
+        <!-- #WEAPON_PROFILE_INFO CONTENT-->
+          <div class="gray white-border-br"><span name="attr_character_name" /></div>
+          <div class="gray white-border-br"><input type=text name="attr_weapon_profile_range" /></div>
+          <div class="gray white-border-br"><input type=text name="attr_weapon_profile_type"></div>
+          <div class="gray white-border-br"><input type=text name="attr_weapon_profile_strength" /></div>
+          <div class="gray white-border-br"><input type="number" max=0 min=-6 name="attr_weapon_profile_ap" /></div>
+          <div class="gray white-border-br"><input type=text  name="attr_weapon_profile_damage" /></div>
+      </div>
+      <div class="weapon_profile_details">
+        <div class="orange black_border_bottom_top">Abilities</div>
+        <div class="gray auto-expand"><span name="attr_weapon_profile_abilities" /><textarea name="attr_weapon_profile_abilities" /></div>
+        <div class="orange black_border_bottom_top">Notes</div>
+        <div class="gray auto-expand"><span name="attr_weapon_profile_notes" /><textarea name="attr_weapon_profile_abilities" /></div>
+      </div>
     </div>
   </div>
 <!--#WEAPON_PROFILE_SHEET END-->

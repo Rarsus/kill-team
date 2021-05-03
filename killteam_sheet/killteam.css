@@ -303,7 +303,15 @@
       "weapon_profile_header"
       "weapon_profile_info"
       "weapon_profile_details";
+      row-gap: 25px;
 }
 .weapon_profile_header { grid-area: "weapon_profile_header";}
-.weapon_profile_info {grid-area: "weapon_profile_info";}
-.weapon_profile_details {grid-area: "weapon_profile_details";}
+.weapon_profile_info {
+  display: grid;
+  grid-template-columns: 4fr 1fr 4fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  grid-area: "weapon_profile_info";}
+.weapon_profile_details {
+  display: grid;
+  grid-template-rows: 1fr minmax(20px, auto) 1fr minmax(20px,auto);
+  grid-area: "weapon_profile_details";}
