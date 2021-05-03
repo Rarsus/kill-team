@@ -3,8 +3,9 @@
 <!-- #SHEETSELECTOR START  -->
   <div class="sheet_selector">
     <header>Select the Sheet Type</header>
-      <button type="action" name="act_character_sheet" >Character Sheet</button>
+      <button type="action" name="act_character_sheet"      >Character Sheet</button>
       <button type="action" name="act_command_roster_sheet" >Command Roster</button>
+      <button type="action" name="act_weapon_profile_sheet" >Weapon Profile</button>
   </div>
 <!-- #SHEETSELECTOR END  -->
 
@@ -343,6 +344,16 @@
 
 <!-- #COMMAND ROSTER SHEET END  -->
 
+<!--#WEAPON_PROFILE_SHEET START -->
+  <div class="weapon_profile_sheet">
+    <div class="weapon_profile">
+      <div class="weapon_profile_header big_orange_header">weapon profile</div>
+      <div class="weapon_profile_info orange">stub: weapon profile info</div>
+      <div class="weapon_profile_details gray">stub: weapon profile details</div>
+    </div>
+  </div>
+<!--#WEAPON_PROFILE_SHEET END-->
+
 <!-- #SHEET WORKERS START -->
   <script type="text/worker">
     on("change:xp1 change:xp2 change:xp3 change:xp4 change:xp5 change:xp6 change:xp7 change:xp8 change:xp9 change:xp10 change:xp11 change:xp12 sheet:opened", function() {
@@ -371,7 +382,8 @@
 
     const buttonlist = [
       "character_sheet",
-      "command_roster_sheet"
+      "command_roster_sheet",
+      "weapon_profile_sheet"
     ];
     buttonlist.forEach(button => {
         on(`clicked:${button}`, function() {

@@ -4,13 +4,14 @@
 /* #SHEET SELECTOR */
   .div.sheet_selector {display: block;}
 
-  .character_sheet, .command_roster_sheet {display:none;}
+  .character_sheet, .command_roster_sheet, .weapon_profile_sheet {display:none;}
   .sheet_toggle[value="character_sheet"] ~ div.character_sheet {display:block;}
   .sheet_toggle[value="command_roster_sheet"] ~ div.command_roster_sheet{display:block;}
+  .sheet_toggle[value="weapon_profile_sheet"] ~ div.weapon_profile_sheet{display:block;}
 
   .sheet_toggle[value="character_sheet"] ~ div.sheet_selector {display: none;}
   .sheet_toggle[value="command_roster_sheet"] ~ div.sheet_selector {display: none;}
-
+  .sheet_toggle[value="weapon_profile_sheet"] ~ div.sheet_selector {display: none;}
 
 /* #BASE FORMATTING */
   .charsheet {
@@ -293,3 +294,16 @@
     grid-template-columns: 4fr 4fr 4fr 1fr 4fr 3fr 1fr;
     grid-auto-rows: auto;
   }
+
+/* #WEAPONPROFILE */
+.weapon_profile {
+  display: grid;
+  grid-template: auto auto auto / 1fr;
+  grid-template-areas:
+      "weapon_profile_header"
+      "weapon_profile_info"
+      "weapon_profile_details";
+}
+.weapon_profile_header { grid-area: "weapon_profile_header";}
+.weapon_profile_info {grid-area: "weapon_profile_info";}
+.weapon_profile_details {grid-area: "weapon_profile_details";}
