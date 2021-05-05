@@ -33,6 +33,11 @@
     font-size: 1em;
   }
 
+  /* REPEATING CONTAINER FORMAT */
+  .repcontainer{ display:contents; }
+  .repcontrol  { grid-column: 1 / -1; }
+  .itemcontrol {z-index: 2;}
+
 /* START #CHECKBOX_REPLACE*/
   input[type="checkbox"] {
     opacity: 0;
@@ -130,6 +135,8 @@
     font-family: 'Minion Pro';
     border: none;
   }
+
+  .h30 {min-height:1.5em  ;}
 /*END #AUTOEXPAND section*/
 
 
@@ -172,7 +179,8 @@
         font-family: "minion pro";
         background-color: lightgray;
     }
-    
+    .gunplay {font-family: "gunplay";}
+    .strong {font-weight: 600;}
       div.gray label {
           display: inline;
           font-family: "gunplay";
@@ -222,18 +230,29 @@
     grid-template-columns: 4fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
     grid-template-rows: auto auto;
     grid-area: "char_info"; }
-  .weapon_info { 
+
+  .weapon_info {grid-area: "weapon_info";}
+  .weapon_info_grid { 
     display: grid;
     grid-template-columns: 3fr 1fr 3fr 1fr 1fr 1fr 3fr;
-    grid-template-rows: auto auto auto auto auto auto;
-    grid-area: "weapon_info"; }
-  .abilities { grid-area: abilities; }
+    grid-auto-rows: min-content;            }
+  .weapon_info .repitem {
+    display: grid;
+    grid-template-columns: 3fr 1fr 3fr 1fr 1fr 1fr 3fr;}
+      
+  .abilities { 
+    grid-area: abilities; }
+  .abilities .repitem { 
+    display: grid;
+    grid-template-columns: 2fr 5fr;    }
+
   .attributes {
     display: grid;
     grid-template-columns: 3fr 3fr;
     grid-template-rows: auto;
     gap: 0px 0px;
     grid-area: "attributes"; }
+
   .stats {
     display: grid;
     grid-template-columns: 3fr 1fr 1fr 1fr;
@@ -288,12 +307,16 @@
     .territory          { grid-column: 3; grid-row: 5;                              }
     .territory_input    { grid-column: 4; grid-row: 5;                              }
 
-  .command_roster_details {
+  .command_roster_details {grid-area: "command_roster_details"}
+  .command_roster_details_header {
     display: grid;
-    grid-area: "command_roster_details";
     grid-template-columns: 4fr 4fr 4fr 1fr 4fr 3fr 1fr;
-    grid-auto-rows: auto;
   }
+  .command_roster_details .repitem {
+    display: grid;
+    grid-template-columns: 4fr 4fr 4fr 1fr 4fr 3fr 1fr;
+  }
+
 
 /* #WEAPONPROFILE */
 .weapon_profile {
@@ -313,5 +336,16 @@
   grid-area: "weapon_profile_info";}
 .weapon_profile_details {
   display: grid;
-  grid-template-rows: 1fr minmax(20px, auto) 1fr minmax(20px,auto);
   grid-area: "weapon_profile_details";}
+
+  .weapon_ability_grid {
+      display: grid;
+      grid-template-columns: 1fr 4fr;
+    }
+
+  .weapon_profile_details .repitem {
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+  }
+
+  
