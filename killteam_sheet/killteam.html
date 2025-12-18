@@ -14,7 +14,7 @@
     <div class="battleblock">
       <div class="base">
         <div class="type"><label><span name="attr_character_name" /></label></div>
-        <div class="points"><label><input type=number min=0 step=1 value=0 name="attr_points" /> POINTS</label></div>
+        <div class="points"><label><input type="number" min="0" step="1" value="0" name="attr_points" /> POINTS</label></div>
       </div>
       <div class="char_info">
         <div class="orange black_border_bottom_top"><label>NAME</label></div>
@@ -28,16 +28,16 @@
         <div class="orange black_border_bottom_top center"><label>Ld</label></div>
         <div class="orange black_border_bottom_top center"><label>Sv</label></div>
 
-        <div class="gray white-border-br"><input type=text name="attr_character_type"/></div>
-        <div class="gray white-border-br"><input type=number name=attr_m /></div>
-        <div class="gray white-border-br"><input type=number name=attr_ws /></div>
-        <div class="gray white-border-br"><input type=number name=attr_bs /></div>
-        <div class="gray white-border-br"><input type=number name=attr_s /></div>
-        <div class="gray white-border-br"><input type=number name=attr_t /></div>
-        <div class="gray white-border-br"><input type=number name=attr_w /></div>
-        <div class="gray white-border-br"><input type=number name=attr_a /></div>
-        <div class="gray white-border-br"><input type=number name=attr_ld /></div>
-        <div class="gray white-border-b "><input type=number name=attr_sv /></div>
+        <div class="gray white-border-br"><input type="text" name="attr_character_type"/></div>
+        <div class="gray white-border-br"><input type="number" name="attr_m" /></div>
+        <div class="gray white-border-br"><input type="number" name="attr_ws" /></div>
+        <div class="gray white-border-br"><input type="number" name="attr_bs" /></div>
+        <div class="gray white-border-br"><input type="number" name="attr_s" /></div>
+        <div class="gray white-border-br"><input type="number" name="attr_t" /></div>
+        <div class="gray white-border-br"><input type="number" name="attr_w" /></div>
+        <div class="gray white-border-br"><input type="number" name="attr_a" /></div>
+        <div class="gray white-border-br"><input type="number" name="attr_ld" /></div>
+        <div class="gray white-border-b "><input type="number" name="attr_sv" /></div>
       </div>
       <div class="weapon_info">
       <details><summary class="orange">weapons</summary>
@@ -52,12 +52,12 @@
       </div>
       <div>
         <fieldset class="repeating_weapons">
-          <div class="gray white-border-br"><input type=text name="attr_weapon-name" /></div>
-          <div class="gray white-border-br"><input type=text name="attr_weapon-range"/></div>
-          <div class="gray white-border-br"><input type=text name="attr_weapon-type" /></div>
-          <div class="gray white-border-br"><input type=text name="attr_weapon-s"    /></div>
-          <div class="gray white-border-br"><input type=text name="attr_weapon-ap"   /></div>
-          <div class="gray white-border-br"><input type=text name="attr_weapon-d"    /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_weapon-name" /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_weapon-range"/></div>
+          <div class="gray white-border-br"><input type="text" name="attr_weapon-type" /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_weapon-s"    /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_weapon-ap"   /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_weapon-d"    /></div>
           <div class="auto-expand gray white-border-b">
             <span name="attr_weapon-abilities"></span>
             <textarea name="attr_weapon-abilities" ></textarea>
@@ -68,7 +68,7 @@
       <div class="abilities">
         <div><label>Abilities</label></div>
         <fieldset class="repeating_character-abilities">
-          <div><input class="gunplay strong" placeholder="Ability name"  type=text name="attr_ability-name" /></div>
+          <div><input class="gunplay strong" placeholder="Ability name"  type="text" name="attr_ability-name" /></div>
           <div class="auto-expand">
             <span name="attr_ability-description"></span>
             <textarea name="attr_ability-description" ></textarea>
@@ -76,45 +76,45 @@
         </fieldset>
       </div>
       <div class="attributes">
-        <div><label>Specialism</label><input type=text name="attr_char_specialism"></div>
-        <div><label>Demeanor</label><input type=text name="attr_char_demeanor"></div>
+        <div><label>Specialism</label><input type="text" name="attr_char_specialism"></div>
+        <div><label>Demeanor</label><input type="text" name="attr_char_demeanor"></div>
       </div>
       <div class="stats">
         <div class="xp"><label>Experience <span name="attr_xp"/></label>
 
-            <input type=checkbox name="attr_xp1" value=1><span> </span>
-            <input type=checkbox name="attr_xp2" value=2><span> </span>
-            <input class="yellow" type=checkbox name="attr_xp3" value=3><span> </span>
-            <input type=checkbox name="attr_xp4" value=4><span> </span>
-            <input type=checkbox name="attr_xp5" value=5><span> </span>
-            <input type=checkbox name="attr_xp6" value=6><span> </span>
-            <input class="yellow" type=checkbox name="attr_xp7" value=7><span> </span>
-            <input type=checkbox name="attr_xp8" value=8><span> </span>
-            <input type=checkbox name="attr_xp9" value=9><span> </span>
-            <input type=checkbox name="attr_xp10" value=10><span> </span>
-            <input type=checkbox name="attr_xp11" value=11><span> </span>
-            <input class="yellow" type=checkbox name="attr_xp12" value=12><span> </span>
+            <input type="checkbox" name="attr_xp1" value="1"><span> </span>
+            <input type="checkbox" name="attr_xp2" value="2"><span> </span>
+            <input class="yellow" type="checkbox" name="attr_xp3" value="3"><span> </span>
+            <input type="checkbox" name="attr_xp4" value="4"><span> </span>
+            <input type="checkbox" name="attr_xp5" value="5"><span> </span>
+            <input type="checkbox" name="attr_xp6" value="6"><span> </span>
+            <input class="yellow" type="checkbox" name="attr_xp7" value="7"><span> </span>
+            <input type="checkbox" name="attr_xp8" value="8"><span> </span>
+            <input type="checkbox" name="attr_xp9" value="9"><span> </span>
+            <input type="checkbox" name="attr_xp10" value="10"><span> </span>
+            <input type="checkbox" name="attr_xp11" value="11"><span> </span>
+            <input class="yellow" type="checkbox" name="attr_xp12" value="12"><span> </span>
 
         </div>
         <div class="flesh"><label>FLESH WOUNDS</label>
-          <div align=center>
-            <input type=checkbox name="attr_wounds1" value=1><span> </span>
-            <input type=checkbox name="attr_wounds2" value=2><span> </span>
-            <input  type=checkbox name="attr_wounds3" value=3><span> </span>
+          <div align="center">
+            <input type="checkbox" name="attr_wounds1" value="1"><span> </span>
+            <input type="checkbox" name="attr_wounds2" value="2"><span> </span>
+            <input type="checkbox" name="attr_wounds3" value="3"><span> </span>
           </div>
         </div>
 
         <div class="convalescence">
           <label>CONVALESCENCE</label>
-          <div align=center>
-            <input type=checkbox name="attr_covalenscense" /><span> </span>
+          <div align="center">
+            <input type="checkbox" name="attr_convalescence" /><span> </span>
           </div>
         </div>
 
         <div class="new_recruit">
           <label>NEW RECRUIT</label>
-          <div align=center>
-            <input type=checkbox name="attr_new_recruit" /><span> </span>
+          <div align="center">
+            <input type="checkbox" name="attr_new_recruit" /><span> </span>
           </div>
         </div>
       </div>
@@ -137,24 +137,24 @@
           <div class="faction orange white-border-br right"><label>faction</label></div>
           <div class="faction_input gray white-border-br"  ><input type="text" name="attr_faction"></div>
           <div class="intel gray white-border-b"><label>Intelligence </label></div>
-          <div class="intel_input gray white-border-br"><input type=number name="attr_intel"></div>
+          <div class="intel_input gray white-border-br"><input type="number" name="attr_intel"></div>
           <div class="orange white-border-br kt_name_header right"><label>CURRENT KILL TEAM'S NAME</label></div>
           <div class="kt_name_input gray white-border-b"  ><input type="text" name="attr_kill_team_name"></div>
         <!-- ROW 3 -->
           <div class="mission orange white-border-br right"><label>mission</label></div>
           <div class="mission_input gray white-border-br"><input type="text" name="attr_mission"></div>
           <div class="materiel gray white-border-b"><label>Materiel </label></div>
-          <div class="materiel_input gray white-border-br"><input type=number name="attr_materiel"></div>
+          <div class="materiel_input gray white-border-br"><input type="number" name="attr_materiel"></div>
         <!-- ROW 4 -->
           <div class="background orange white-border-br right"><label>background</label></div>
           <div class="background_input gray white-border-br"  ><input type="text" name="attr_background"></div>
           <div class="morale gray white-border-b"><label>Morale </label></div>
-          <div class="gray white-border-br morale_input"><input type=text name="attr_morale"></div>
+          <div class="gray white-border-br morale_input"><input type="text" name="attr_morale"></div>
         <!-- ROW 5 -->
           <div class="quirk orange white-border-br right"><label>squad quirk</label></div>
-          <div class="quirk_input gray white-border-br"  ><input type="text" name="attr_quirck"></div>
+          <div class="quirk_input gray white-border-br"  ><input type="text" name="attr_quirk"></div>
           <div class="territory gray white-border-b"><label>Territory </label></div>
-          <div class="territory_input gray white-border-br"><input class="input50" type=text name="attr_territory"></div>
+          <div class="territory_input gray white-border-br"><input class="input50" type="text" name="attr_territory"></div>
       </div>
       <div class="command_roster_details">
         <div class="command_roster_details_header">
@@ -167,13 +167,13 @@
           <div class="orange white-border-b"><label>Pts.</label></div>
         </div>
         <fieldset class="repeating_command-roster-model">
-          <div class="gray white-border-br"><input type=text name="attr_model-name"           /></div>
-          <div class="gray white-border-br"><input type=text name="attr_model-type"           /></div>
-          <div class="gray white-border-br"><input type=text name="attr_model-gear"           /></div>
-          <div class="gray white-border-br"><input type=text name="attr_model-xp"             /></div>
-          <div class="gray white-border-br"><input type=text name="attr_model-special-ability"/></div>
-          <div class="gray white-border-br"><input type=text name="attr_model-dem"            /></div>
-          <div class="gray white-border-b" ><input  type=number name="attr_model-points"      /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_model-name"           /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_model-type"           /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_model-gear"           /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_model-xp"             /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_model-special-ability"/></div>
+          <div class="gray white-border-br"><input type="text" name="attr_model-dem"            /></div>
+          <div class="gray white-border-b" ><input type="number" name="attr_model-points"      /></div>
         </fieldset>
       </div>
     </div>
@@ -195,11 +195,11 @@
           <div class="orange black_border_bottom_top">D</div>
         <!-- #WEAPON_PROFILE_INFO CONTENT-->
           <div class="gray white-border-br"><span name="attr_character_name" /></div>
-          <div class="gray white-border-br"><input type=text name="attr_weapon_profile_range" /></div>
-          <div class="gray white-border-br"><input type=text name="attr_weapon_profile_type"></div>
-          <div class="gray white-border-br"><input type=text name="attr_weapon_profile_strength" /></div>
-          <div class="gray white-border-br"><input type="number" max=0 min=-6 name="attr_weapon_profile_ap" /></div>
-          <div class="gray white-border-br"><input type=text  name="attr_weapon_profile_damage" /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_weapon_profile_range" /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_weapon_profile_type"></div>
+          <div class="gray white-border-br"><input type="text" name="attr_weapon_profile_strength" /></div>
+          <div class="gray white-border-br"><input type="number" max="0" min="-6" name="attr_weapon_profile_ap" /></div>
+          <div class="gray white-border-br"><input type="text"  name="attr_weapon_profile_damage" /></div>
       </div>
       <div class="weapon_profile_details">
         <div class="orange black_border_bottom_top">Abilities</div>         <!--Line 1-->
@@ -208,8 +208,8 @@
           <div class="gray white-border-b"><label>Description</label></div>
         </div>
         <fieldset class="repeating_weapon-abilities">                       <!--Line 3 -->
-          <div class="gray white-border-br"><input  type=text name="attr_ability-name" /></div>
-          <div class="gray white-border-br"><input  type=text name="attr_ability-description" /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_ability-name" /></div>
+          <div class="gray white-border-br"><input type="text" name="attr_ability-description" /></div>
         </fieldset>
 
         <div class="orange black_border_bottom_top">Notes</div>     <!--Line 4-->
@@ -230,25 +230,16 @@
 <!-- #SHEET WORKERS START -->
   <script type="text/worker">
     on("change:xp1 change:xp2 change:xp3 change:xp4 change:xp5 change:xp6 change:xp7 change:xp8 change:xp9 change:xp10 change:xp11 change:xp12 sheet:opened", function() {
-      console.log("starting xp_bar_worker");
       getAttrs(["xp1","xp2","xp3","xp4","xp5","xp6","xp7","xp8","xp9","xp10","xp11","xp12"], function(v) {
         let xp=Math.max(v.xp1,v.xp2,v.xp3,v.xp4,v.xp5,v.xp6,v.xp7,v.xp8,v.xp9,v.xp10,v.xp11,v.xp12);
-        switch (xp) {
-            default:
-              setAttrs({"xp":0});
-              break;
-            case 1:  setAttrs({"xp":xp,"xp1":1}); break;
-            case 2:  setAttrs({"xp":xp,"xp1":1,"xp2":2});break;
-            case 3:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3});break;
-            case 4:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4});break;
-            case 5:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5});break;
-            case 6:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6});break;
-            case 7:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7});break;
-            case 8:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7,"xp8":8});break;
-            case 9:  setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7,"xp8":8,"xp9":9});break;
-            case 10: setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7,"xp8":8,"xp9":9,"xp10":10});break;
-            case 11: setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7,"xp8":8,"xp9":9,"xp10":10,"xp11":11});break;
-            case 12: setAttrs({"xp":xp,"xp1":1,"xp2":2,"xp3":3,"xp4":4,"xp5":5,"xp6":6,"xp7":7,"xp8":8,"xp9":9,"xp10":10,"xp11":11,"xp12":12});break;
+        if (xp >= 1 && xp <= 12) {
+          const attrs = {"xp": xp};
+          for (let i = 1; i <= xp; i++) {
+            attrs[`xp${i}`] = i;
+          }
+          setAttrs(attrs);
+        } else {
+          setAttrs({"xp": 0});
         }
       })
     })
