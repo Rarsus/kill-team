@@ -1,4 +1,42 @@
+'use strict';
 
+// Sanitization function to prevent XSS vulnerabilities
+// Uses DOM innerText for HTML entity escaping with input validation
+// Note: This provides basic XSS protection for trusted content sources (AI-generated text).
+// For untrusted user input in production, consider using a library like DOMPurify.
+function sanitizeInput(input) {
+  // Handle edge cases
+  if (input === null || input === undefined) {
+    return '';
+  }
+  
+  // Convert to string to handle non-string inputs
+  const inputStr = String(input);
+  
+  // Create temporary div for escaping
+  const div = document.createElement('div');
+  div.innerText = inputStr;
+  return div.innerHTML;
+}
+
+// Check for TTS browser support and provide fallback messaging
+function checkTTSSupport() {
+  if (typeof speechSynthesis === 'undefined') {
+    console.warn('Text-to-Speech is not supported in this browser');
+    const ttsCheckbox = document.getElementById('ttsCheckbox');
+    const voiceSelect = document.getElementById('voiceSelect');
+    if (ttsCheckbox) {
+      ttsCheckbox.disabled = true;
+      ttsCheckbox.title = 'TTS not supported in this browser';
+    }
+    if (voiceSelect) {
+      voiceSelect.disabled = true;
+      voiceSelect.title = 'TTS not supported in this browser';
+    }
+    return false;
+  }
+  return true;
+}
 
 ai = {import:ai-text-plugin} // <-- for generating the story text
 commentsPlugin = {import:comments-plugin} // <-- for feedback button
@@ -14,90 +52,121 @@ createTextEditor = {import:text-editor-plugin-v1} // a higher-performance versio
 
 
 
-// This function populates the voice dropdown list
-populateVoiceList() =>
+// --- TTS (Text-to-Speech) FUNCTIONS ---
+
+// Populates the voice dropdown list with available TTS voices
+function populateVoiceList() {
   if (typeof speechSynthesis === 'undefined' || typeof voiceSelect === 'undefined') return;
 
-  let voices = speechSynthesis.getVoices();
-  let currentVoice = voiceSelect.value || localStorage.ttsVoice; // Store current selection
-  voiceSelect.innerHTML = ''; // Clear existing options
-  
-  if (voices.length === 0) {
-    let option = document.createElement('option');
-    option.textContent = 'No voices available';
-    voiceSelect.appendChild(option);
+  try {
+    const voices = speechSynthesis.getVoices();
+    const currentVoice = voiceSelect.value || localStorage.ttsVoice;
+    voiceSelect.innerHTML = ''; // Clear existing options
+    
+    if (voices.length === 0) {
+      const option = document.createElement('option');
+      option.textContent = 'No voices available';
+      voiceSelect.appendChild(option);
+      return;
+    }
+
+    // Use DocumentFragment for efficient DOM manipulation
+    const fragment = document.createDocumentFragment();
+    voices.forEach(voice => {
+      const option = document.createElement('option');
+      // textContent and setAttribute are safe from XSS (programmatic DOM manipulation)
+      option.textContent = `${voice.name} (${voice.lang})`;
+      option.value = voice.name;
+      option.setAttribute('data-lang', voice.lang);
+      option.setAttribute('data-name', voice.name);
+      fragment.appendChild(option);
+    });
+    voiceSelect.appendChild(fragment);
+    
+    // Reselect the previously saved voice if it exists and is still available
+    if (currentVoice && voices.some(v => v.name === currentVoice)) {
+      voiceSelect.value = currentVoice;
+    } else if (voices.length > 0) {
+      // Otherwise, default to the first voice and save it
+      voiceSelect.value = voices[0].name;
+      localStorage.ttsVoice = voices[0].name;
+    }
+  } catch (error) {
+    console.error('Error populating voice list:', error);
+  }
+}
+
+// Initialize TTS engine on user interaction
+function primeTTS() {
+  if (!checkTTSSupport()) {
     return;
   }
-
-  for(let voice of voices) {
-    let option = document.createElement('option');
-    option.textContent = `${voice.name} (${voice.lang})`;
-    option.setAttribute('value', voice.name);
-    option.setAttribute('data-lang', voice.lang);
-    option.setAttribute('data-name', voice.name);
-    voiceSelect.appendChild(option);
-  }
   
-  // Reselect the previously saved voice if it exists and is still available
-  if (currentVoice && voices.some(v => v.name === currentVoice)) {
-    voiceSelect.value = currentVoice;
-  } else if (voices.length > 0) {
-    // Otherwise, default to the first voice and save it
-    voiceSelect.value = voices[0].name;
-    localStorage.ttsVoice = voices[0].name;
-  }
-
-// Function to "prime" the TTS engine on user click
-primeTTS() =>
-  if (typeof speechSynthesis === 'undefined') return; // Exit if speech API not supported
-  
-  // Try to populate voices now
-  populateVoiceList();
-  
-  // If voices are already loaded, just populate
-  if (speechSynthesis.getVoices().length > 0) {
-    populateVoiceList();
-  } else {
-    // If not, set an event listener to populate them when they load
-    // This is crucial as voices can load asynchronously
-    speechSynthesis.onvoiceschanged = populateVoiceList;
-  }
-
-  if (speechSynthesis.speaking) return; // Don't interrupt if already speaking
-  let utterance = new SpeechSynthesisUtterance(" "); // Speak a single space
-  utterance.volume = 0; // Make it silent
-  speechSynthesis.speak(utterance);
-
-// Helper function to stop any ongoing speech
-stopSpeech() =>
-  if (typeof speechSynthesis !== 'undefined') {
-    speechSynthesis.cancel();
-  }
-
-// Helper function to speak text if TTS is enabled
-speak(text) =>
-  if (typeof speechSynthesis !== 'undefined' && typeof ttsCheckbox !== 'undefined' && ttsCheckbox.checked && text.trim().length > 0) {
-    stopSpeech(); // Stop anything else that might be speaking
-    
-    // Clean up text for speech
-    let textToSpeak = text.replace(/SUMMARY\^[0-9]+:/g, "Summary."); // Don't say "SUMMARY caret 1"
-    textToSpeak = textToSpeak.replace(/[\*#_]/g, ''); // Remove markdown-like characters
-    
-    let utterance = new SpeechSynthesisUtterance(textToSpeak);
-    
-    let selectedVoiceName = document.getElementById('voiceSelect').value || localStorage.ttsVoice;
-    if (selectedVoiceName) {
-      let voices = speechSynthesis.getVoices();
-      let voice = voices.find(v => v.name === selectedVoiceName);
-      if (voice) {
-        utterance.voice = voice;
-      }
+  try {
+    // Populate voices if they are already loaded, otherwise set up listener
+    if (speechSynthesis.getVoices().length > 0) {
+      populateVoiceList();
+    } else {
+      // Set an event listener to populate them when they load
+      // This is crucial as voices can load asynchronously
+      speechSynthesis.onvoiceschanged = populateVoiceList;
     }
-    
+
+    if (speechSynthesis.speaking) return; // Don't interrupt if already speaking
+    const utterance = new SpeechSynthesisUtterance(" ");
+    utterance.volume = 0; // Make it silent
     speechSynthesis.speak(utterance);
+  } catch (error) {
+    console.error('Error initializing TTS:', error);
   }
+}
+
+// Stop any ongoing speech synthesis
+function stopSpeech() {
+  if (typeof speechSynthesis !== 'undefined') {
+    try {
+      speechSynthesis.cancel();
+    } catch (error) {
+      console.error('Error stopping speech:', error);
+    }
+  }
+}
+
+// Speak text using TTS if enabled
+function speak(text) {
+  if (typeof speechSynthesis !== 'undefined' && typeof ttsCheckbox !== 'undefined' && ttsCheckbox.checked && text.trim().length > 0) {
+    try {
+      stopSpeech(); // Stop anything else that might be speaking
+      
+      // Clean up text for speech using method chaining
+      const textToSpeak = text
+        .replace(/SUMMARY\^[0-9]+:/g, "Summary.") // Don't say "SUMMARY caret 1"
+        .replace(/[\*#_]/g, ''); // Remove markdown-like characters
+      
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      
+      const selectedVoiceName = document.getElementById('voiceSelect').value || localStorage.ttsVoice;
+      if (selectedVoiceName) {
+        const voices = speechSynthesis.getVoices();
+        const voice = voices.find(v => v.name === selectedVoiceName);
+        if (voice) {
+          utterance.voice = voice;
+        }
+      }
+      
+      speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error('Error speaking text:', error);
+    }
+  }
+}
 // --- END TTS FUNCTIONS ---
 
+// ///////////////////////////
+// GENRE CONFIGURATION
+// ///////////////////////////
+// Dynamic genre instructions for story generation
+// Each genre provides specific guidance for AI story generation
 genreInstructions
   default = 
   fantasy
@@ -137,6 +206,11 @@ genreInstructions
   tragedy
     - **Genre: Tragedy.** The story should focus on the downfall of the protagonist, often due to a fatal flaw or external circumstances. The tone should be serious and somber. The ending should be emotionally impactful. 
 
+// ///////////////////////////
+// WRITING STYLE CONFIGURATION
+// ///////////////////////////
+// Dynamic style instructions for story generation
+// Each style provides specific guidance for narrative voice and structure
 styleInstructions
   default
     - **Writing Style: Novel Style (Default).** Use a clear, balanced, and engaging novelistic style. Vary sentence structure and length. Avoid overly complex or overly simple prose. Focus on strong storytelling and clear narration.
@@ -165,10 +239,18 @@ styleInstructions
   modernist
     - **Writing Style: Modernist.** Focus on the inner, subjective experience of the characters. Experiment with form, fragmented narratives, and non-linear timelines. Often includes themes of alienation and disillusionment.    
 
+// ///////////////////////////
+// METADATA CONFIGURATION
+// ///////////////////////////
+// Page metadata for SEO and social sharing
 $meta // this is the stuff that appears in search engines, social media preview cards, browser tab title, etc.
   title = 📔 Enhanced AI Story Generator (Unlimited, Free, Local TTS, & Story Tracking)
   description = Completely free & unlimited Enhanced, Local TTS, & Story Tracking version of the AI story generator/writer based on a prompt. Automatically detects system TTS, supports voice selection, & remembers your preferences. Includes a story bible for tracking characters, locations, & events, perfect for writers, roleplayers, & storytellers, as well as a perspective selector, and a genre selector. Includes a "what happens next" box to guide the AI's next paragraph. Also includes a "start with" box to give the AI a starting point for the story. Includes a "one paragraph at a time" mode for more control over the story's pacing. Includes a "regenerate last paragraph" button to re-generate the last paragraph if you don't like it. Includes a "delete last paragraph" button to remove the last paragraph if you don't like it. Includes a "share link" button to share your story with others. Includes a "clear story" button to start over. Includes a. No sign-up or login. Generate LONG stories, paragraph-by-paragraph, optionally guiding the AI on what happens next. Fast generation & there are no daily usage restrictions - unlimited & 100% free storytelling AI, no account needed. You can prompt the AI to create horror stories (including creepy/creepypasta & analogue horror stories), funny stories, fantasy, mystery, anime, & basically anything else. Can do short stories or long-form stories - you could even try using this AI to write a novel!
 
+// ///////////////////////////
+// STORY GENERATION PROMPT
+// ///////////////////////////
+// Main prompt configuration for AI story generation
 storyWritingPrompt
   instruction
     <instructions>
@@ -231,7 +313,7 @@ storyWritingPrompt
         storyBeginBtn.hidden = true;
         storyBeginOptionsCtn.hidden = true;
         
-        let storyText = window.storySoFarEl.value;
+        const storyText = window.storySoFarEl.value;
         let prefix = '';
         if (storyText.trim().length > 0) {
           if (storyText.endsWith('\n\n')) {
@@ -249,7 +331,7 @@ storyWritingPrompt
       chunkText = window.withheldTrailingNewlines + chunkText;
       window.withheldTrailingNewlines = "";
       
-      let trailingNewlines = chunkText.match(/\n+$/)?.[0]
+      const trailingNewlines = chunkText.match(/\n+$/)?.[0]
       if(trailingNewlines) {
         window.withheldTrailingNewlines += trailingNewlines;
         chunkText = chunkText.replace(/\n+$/, "");
@@ -272,7 +354,7 @@ storyWritingPrompt
     if(window.storySoFarEl.scrollTop > (window.storySoFarEl.scrollHeight - window.storySoFarEl.offsetHeight)-65) {
       window.storySoFarEl.scrollTop = 99999999;
     }
-  onFinish(data) =>
+  onFinish(data) => {
     if(/^\*?\*?paragraph 1\*?\*?:\s+?/i.test(window.storySoFarEl.value)) {
       window.storySoFarEl.value = window.storySoFarEl.value.replace(/^\*?\*?paragraph 1\*?\*?:\s+?/i, "");
     }
@@ -294,6 +376,7 @@ storyWritingPrompt
       newText = window.storySoFarEl.value;
     }
     speak(newText.trim());
+  }
 
 
 getParagraphEndRegex() => return /[.。．！!？?ー":*»’”—–。]$/;
@@ -302,21 +385,21 @@ getParagraphEndRegex() => return /[.。．！!？?ー":*»’”—–。]$/;
 //  BIBLE GENERATION FUNCTIONS
 // ///////////////////////////
 
-//  Helper function to build the combined story bible text
-getCombinedStoryBibleText() =>
+// Build the combined story bible text for context
+getCombinedStoryBibleText() => {
   if (localStorage.trackingEnabled !== 'true') return "";
 
-  let playerInfo = document.getElementById('playerInfoEl').value.trim();
-  let charactersInfo = document.getElementById('charactersInfoEl').value.trim();
-  let locationsInfo = document.getElementById('locationsInfoEl').value.trim();
-  let eventsInfo = document.getElementById('eventsInfoEl').value.trim();
-  let loreInfo = document.getElementById('loreInfoEl').value.trim();
-  let mysteriesInfo = document.getElementById('mysteriesInfoEl').value.trim();
+  const playerInfo = document.getElementById('playerInfoEl').value.trim();
+  const charactersInfo = document.getElementById('charactersInfoEl').value.trim();
+  const locationsInfo = document.getElementById('locationsInfoEl').value.trim();
+  const eventsInfo = document.getElementById('eventsInfoEl').value.trim();
+  const loreInfo = document.getElementById('loreInfoEl').value.trim();
+  const mysteriesInfo = document.getElementById('mysteriesInfoEl').value.trim();
   // Scratchpad is intentionally omitted as it's for author's notes only.
 
   if (!playerInfo && !charactersInfo && !locationsInfo && !eventsInfo && !loreInfo && !mysteriesInfo) return "";
   
-  let bibleContent = 
+  const bibleContent = 
     "## Player Info & Inventory:\n" + (literal(playerInfo) || "(Not specified.)") + "\n\n" +
     "## Other Characters:\n" + (literal(charactersInfo) || "(Not specified.)") + "\n\n" +
     "## Locations:\n" + (literal(locationsInfo) || "(Not specified.)") + "\n\n" +
@@ -325,6 +408,7 @@ getCombinedStoryBibleText() =>
     "## Mysteries & Plot Threads:\n" + (literal(mysteriesInfo) || "(Not specified.)");
 
   return "\n\n<tracked_info>\n# STORY BIBLE\n" + bibleContent.trim() + "\n</tracked_info>";
+}
 
 // This is the prompt for updating any bible section
 bibleAutoUpdatePrompt
@@ -419,8 +503,8 @@ bibleAutoUpdatePrompt
   $output = [this.joinItems("\n").trim()]
 
 
-updateLastParagraphButtonsDisplayIfNeeded() =>
-  let updateButtonsGenerateCount = Number(localStorage.generateCount);
+updateLastParagraphButtonsDisplayIfNeeded() => {
+  const updateButtonsGenerateCount = Number(localStorage.generateCount);
   if(updateButtonsGenerateCount > 2) {
     rateLastMessageCtn.style.display = "inline-block";
     deleteLastBtn.textContent = "🗑️";
@@ -428,16 +512,18 @@ updateLastParagraphButtonsDisplayIfNeeded() =>
     regenLastBtn.textContent = "🔁";
     regenLastBtn.style.minWidth = "3rem";
   }
+}
 
-updateButtonsDisplay() =>
+updateButtonsDisplay() => {
   if(window.storySoFarEl.value.trim() === "") {
     bottomButtonsCtn.style.display = "none";
   } else {
     bottomButtonsCtn.style.display = "flex";
     generateBtn.textContent = "▶️ next paragraph";
   }
+}
 
-deleteLastParagraph() =>
+deleteLastParagraph() => {
   window.storyTextBeforeLastParagraphDelete = window.storySoFarEl.value;
   if(window.storyTextBeforeLastGeneration) window.storyTextBeforeLastGeneration_beforeParagraphDelete = window.storyTextBeforeLastGeneration;
   window.storyTextBeforeLastGeneration = null;
@@ -448,7 +534,9 @@ deleteLastParagraph() =>
   window.undoDeleteButtonHideTimeout = setTimeout(() => {
     undoDeleteLastParagraphCtn.style.display = "none";
   }, 1000*4);
-undoDeleteLastParagraph() =>
+}
+
+undoDeleteLastParagraph() => {
   if(window.storyTextBeforeLastParagraphDelete) {
     antiAntiLayoutJank(() => window.storySoFarEl.value = window.storyTextBeforeLastParagraphDelete);
     if(window.storyTextBeforeLastGeneration_beforeParagraphDelete) window.storyTextBeforeLastGeneration = window.storyTextBeforeLastGeneration_beforeParagraphDelete;
@@ -458,18 +546,20 @@ undoDeleteLastParagraph() =>
   } else {
     console.error("??? should not have been able to click delete button.");
   }
+}
 
-antiAntiLayoutJank(fn) =>
-  let prevPageScrollTop = document.scrollingElement.scrollTop;
+antiAntiLayoutJank(fn) => {
+  const prevPageScrollTop = document.scrollingElement.scrollTop;
   fn();
   document.scrollingElement.scrollTop = prevPageScrollTop;
+}
 
-generateWhatHappensNextIdeas() =>
+generateWhatHappensNextIdeas() => {
   whatHappensNextSuggestionsCtn.style.display = "";
   generateWhatHappensNextIdeasBtn.disabled = true;
 
   let textSoFar = "";
-  let pendingObj = ai({
+  const pendingObj = ai({
     instruction: whatHappensNextInstruction.evaluateItem,
     startWith: `Here are 3 different ideas for what could happen next in this story:\n1.`,
     onChunk: (data) => {
@@ -479,13 +569,17 @@ generateWhatHappensNextIdeas() =>
       }
     },
     onFinish: () => {
-      let existingInstruction = (window.whatHappensNextSuggestionsRegenInstructions || "").trim().replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      // Sanitize user input for attribute value with quote escaping
+      const existingInstruction = sanitizeInput(window.whatHappensNextSuggestionsRegenInstructions || "")
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
       let html = textSoFar.trim().split("\n").filter(l => /^[0-9]+\./.test(l.trim())).map(l => l.replace(/^[0-9]+\./g, "").trim()).map(ideaText => {
-        let ideaTextEscaped = ideaText.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const ideaTextEscaped = sanitizeInput(ideaText);
+        // For attribute values, use sanitized text and add quote escaping
+        const ideaAttrEscaped = ideaTextEscaped.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         return `<div style="border:1px solid gray; margin:0.25rem; display:flex; padding:0.25rem; border-radius:3px;">
           <div style="">${ideaTextEscaped}</div>
-          <button data-idea="${ideaTextEscaped}" onclick="whatHappensNextEl.value=this.dataset.idea; whatHappensNextSuggestionsCtn.style.display='none';">use</button>
+          <button data-idea="${ideaAttrEscaped}" onclick="whatHappensNextEl.value=this.dataset.idea; whatHappensNextSuggestionsCtn.style.display='none';">use</button>
         </div>`;
       }).join("");
 
@@ -497,6 +591,7 @@ generateWhatHappensNextIdeas() =>
     },
   });
   whatHappensNextSuggestionsCtn.innerHTML = pendingObj.loadingIndicatorHtml;
+}
 
 whatHappensNextInstruction
   Please write 3 *short* one-sentence, creative ideas for what could happen next in this story.
@@ -514,17 +609,19 @@ whatHappensNextInstruction
   3. <another SHORT alternative idea for what could happen next>
   $output = [this.joinItems("\n")]
 
-resetRatingButtons() =>
+resetRatingButtons() => {
   rateLastMessageBadBtn.disabled = true;
   rateLastMessageGoodBtn.disabled = true;
   rateLastMessageBadBtn.style.opacity = 1;
   rateLastMessageGoodBtn.style.opacity = 1;
+}
 
-enableRatingButtons() =>
+enableRatingButtons() => {
   rateLastMessageBadBtn.disabled = false;
   rateLastMessageGoodBtn.disabled = false;
+}
 
-loadChatDataIntoInputAreas(data) =>
+loadChatDataIntoInputAreas(data) => {
   if(data) {
     document.getElementById('storyOverviewEl').value = data.storyOverview || "";
     window.storySoFarEl.value = data.storySoFar || "";
@@ -575,7 +672,7 @@ loadChatDataIntoInputAreas(data) =>
   }
 
   {
-    let t = performance.now();
+    const t = performance.now();
     window.storySoFarEl.scrollTop = window.storySoFarEl.scrollHeight;
     window.storySoFarElInitialRenderTime = performance.now()-t;
     console.log("storySoFarElInitialRenderTime:", window.storySoFarElInitialRenderTime);
@@ -583,8 +680,9 @@ loadChatDataIntoInputAreas(data) =>
 
   updateButtonsDisplay();
   checkOverlyLongFixedTokens();
+}
 
-loadDataIntoLocalStorage(data) =>
+loadDataIntoLocalStorage(data) => {
   localStorage.storyOverview = data.storyOverview;
   localStorage.storySoFar = data.storySoFar;
   localStorage.whatHappensNext = data.whatHappensNext;
