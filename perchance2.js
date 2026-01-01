@@ -7,6 +7,25 @@ function sanitizeInput(input) {
   return div.innerHTML;
 }
 
+// Check for TTS browser support and provide fallback messaging
+function checkTTSSupport() {
+  if (typeof speechSynthesis === 'undefined') {
+    console.warn('Text-to-Speech is not supported in this browser');
+    const ttsCheckbox = document.getElementById('ttsCheckbox');
+    const voiceSelect = document.getElementById('voiceSelect');
+    if (ttsCheckbox) {
+      ttsCheckbox.disabled = true;
+      ttsCheckbox.title = 'TTS not supported in this browser';
+    }
+    if (voiceSelect) {
+      voiceSelect.disabled = true;
+      voiceSelect.title = 'TTS not supported in this browser';
+    }
+    return false;
+  }
+  return true;
+}
+
 ai = {import:ai-text-plugin} // <-- for generating the story text
 commentsPlugin = {import:comments-plugin} // <-- for feedback button
 tabbedCommentsPlugin = {import:tabbed-comments-plugin-v1} // <-- for comments section at bottom of page
@@ -20,6 +39,8 @@ createTextEditor = {import:text-editor-plugin-v1} // a higher-performance versio
 
 
 
+
+// --- TTS (Text-to-Speech) FUNCTIONS ---
 
 // Populates the voice dropdown list with available TTS voices
 function populateVoiceList() {
@@ -64,8 +85,7 @@ function populateVoiceList() {
 
 // Initialize TTS engine on user interaction
 function primeTTS() {
-  if (typeof speechSynthesis === 'undefined') {
-    console.warn('Speech synthesis not supported in this browser');
+  if (!checkTTSSupport()) {
     return;
   }
   
@@ -131,6 +151,11 @@ function speak(text) {
 }
 // --- END TTS FUNCTIONS ---
 
+// ///////////////////////////
+// GENRE CONFIGURATION
+// ///////////////////////////
+// Dynamic genre instructions for story generation
+// Each genre provides specific guidance for AI story generation
 genreInstructions
   default = 
   fantasy
@@ -170,6 +195,11 @@ genreInstructions
   tragedy
     - **Genre: Tragedy.** The story should focus on the downfall of the protagonist, often due to a fatal flaw or external circumstances. The tone should be serious and somber. The ending should be emotionally impactful. 
 
+// ///////////////////////////
+// WRITING STYLE CONFIGURATION
+// ///////////////////////////
+// Dynamic style instructions for story generation
+// Each style provides specific guidance for narrative voice and structure
 styleInstructions
   default
     - **Writing Style: Novel Style (Default).** Use a clear, balanced, and engaging novelistic style. Vary sentence structure and length. Avoid overly complex or overly simple prose. Focus on strong storytelling and clear narration.
@@ -198,10 +228,18 @@ styleInstructions
   modernist
     - **Writing Style: Modernist.** Focus on the inner, subjective experience of the characters. Experiment with form, fragmented narratives, and non-linear timelines. Often includes themes of alienation and disillusionment.    
 
+// ///////////////////////////
+// METADATA CONFIGURATION
+// ///////////////////////////
+// Page metadata for SEO and social sharing
 $meta // this is the stuff that appears in search engines, social media preview cards, browser tab title, etc.
   title = 📔 Enhanced AI Story Generator (Unlimited, Free, Local TTS, & Story Tracking)
   description = Completely free & unlimited Enhanced, Local TTS, & Story Tracking version of the AI story generator/writer based on a prompt. Automatically detects system TTS, supports voice selection, & remembers your preferences. Includes a story bible for tracking characters, locations, & events, perfect for writers, roleplayers, & storytellers, as well as a perspective selector, and a genre selector. Includes a "what happens next" box to guide the AI's next paragraph. Also includes a "start with" box to give the AI a starting point for the story. Includes a "one paragraph at a time" mode for more control over the story's pacing. Includes a "regenerate last paragraph" button to re-generate the last paragraph if you don't like it. Includes a "delete last paragraph" button to remove the last paragraph if you don't like it. Includes a "share link" button to share your story with others. Includes a "clear story" button to start over. Includes a. No sign-up or login. Generate LONG stories, paragraph-by-paragraph, optionally guiding the AI on what happens next. Fast generation & there are no daily usage restrictions - unlimited & 100% free storytelling AI, no account needed. You can prompt the AI to create horror stories (including creepy/creepypasta & analogue horror stories), funny stories, fantasy, mystery, anime, & basically anything else. Can do short stories or long-form stories - you could even try using this AI to write a novel!
 
+// ///////////////////////////
+// STORY GENERATION PROMPT
+// ///////////////////////////
+// Main prompt configuration for AI story generation
 storyWritingPrompt
   instruction
     <instructions>
@@ -264,7 +302,7 @@ storyWritingPrompt
         storyBeginBtn.hidden = true;
         storyBeginOptionsCtn.hidden = true;
         
-        let storyText = window.storySoFarEl.value;
+        const storyText = window.storySoFarEl.value;
         let prefix = '';
         if (storyText.trim().length > 0) {
           if (storyText.endsWith('\n\n')) {
@@ -282,7 +320,7 @@ storyWritingPrompt
       chunkText = window.withheldTrailingNewlines + chunkText;
       window.withheldTrailingNewlines = "";
       
-      let trailingNewlines = chunkText.match(/\n+$/)?.[0]
+      const trailingNewlines = chunkText.match(/\n+$/)?.[0]
       if(trailingNewlines) {
         window.withheldTrailingNewlines += trailingNewlines;
         chunkText = chunkText.replace(/\n+$/, "");
@@ -305,7 +343,7 @@ storyWritingPrompt
     if(window.storySoFarEl.scrollTop > (window.storySoFarEl.scrollHeight - window.storySoFarEl.offsetHeight)-65) {
       window.storySoFarEl.scrollTop = 99999999;
     }
-  onFinish(data) =>
+  onFinish(data) => {
     if(/^\*?\*?paragraph 1\*?\*?:\s+?/i.test(window.storySoFarEl.value)) {
       window.storySoFarEl.value = window.storySoFarEl.value.replace(/^\*?\*?paragraph 1\*?\*?:\s+?/i, "");
     }
@@ -327,6 +365,7 @@ storyWritingPrompt
       newText = window.storySoFarEl.value;
     }
     speak(newText.trim());
+  }
 
 
 getParagraphEndRegex() => return /[.。．！!？?ー":*»’”—–。]$/;
