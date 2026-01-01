@@ -90,14 +90,11 @@ function primeTTS() {
   }
   
   try {
-    // Try to populate voices now
-    populateVoiceList();
-    
-    // If voices are already loaded, just populate
+    // Populate voices if they are already loaded, otherwise set up listener
     if (speechSynthesis.getVoices().length > 0) {
       populateVoiceList();
     } else {
-      // If not, set an event listener to populate them when they load
+      // Set an event listener to populate them when they load
       // This is crucial as voices can load asynchronously
       speechSynthesis.onvoiceschanged = populateVoiceList;
     }
@@ -128,9 +125,10 @@ function speak(text) {
     try {
       stopSpeech(); // Stop anything else that might be speaking
       
-      // Clean up text for speech
-      let textToSpeak = text.replace(/SUMMARY\^[0-9]+:/g, "Summary."); // Don't say "SUMMARY caret 1"
-      textToSpeak = textToSpeak.replace(/[\*#_]/g, ''); // Remove markdown-like characters
+      // Clean up text for speech using method chaining
+      const textToSpeak = text
+        .replace(/SUMMARY\^[0-9]+:/g, "Summary.") // Don't say "SUMMARY caret 1"
+        .replace(/[\*#_]/g, ''); // Remove markdown-like characters
       
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
       
