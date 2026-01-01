@@ -74,6 +74,7 @@ function populateVoiceList() {
     const fragment = document.createDocumentFragment();
     voices.forEach(voice => {
       const option = document.createElement('option');
+      // textContent and setAttribute are safe from XSS (programmatic DOM manipulation)
       option.textContent = `${voice.name} (${voice.lang})`;
       option.value = voice.name;
       option.setAttribute('data-lang', voice.lang);
@@ -568,7 +569,9 @@ generateWhatHappensNextIdeas() => {
       }
     },
     onFinish: () => {
-      const existingInstruction = (window.whatHappensNextSuggestionsRegenInstructions || "").trim().replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      // Sanitize user input for attribute value with quote escaping
+      const existingInstruction = sanitizeInput(window.whatHappensNextSuggestionsRegenInstructions || "")
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
       let html = textSoFar.trim().split("\n").filter(l => /^[0-9]+\./.test(l.trim())).map(l => l.replace(/^[0-9]+\./g, "").trim()).map(ideaText => {
         const ideaTextEscaped = sanitizeInput(ideaText);
