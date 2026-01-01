@@ -1,9 +1,21 @@
 'use strict';
 
 // Sanitization function to prevent XSS vulnerabilities
+// Uses DOM innerText for HTML entity escaping with input validation
+// Note: This provides basic XSS protection for trusted content sources (AI-generated text).
+// For untrusted user input in production, consider using a library like DOMPurify.
 function sanitizeInput(input) {
+  // Handle edge cases
+  if (input === null || input === undefined) {
+    return '';
+  }
+  
+  // Convert to string to handle non-string inputs
+  const inputStr = String(input);
+  
+  // Create temporary div for escaping
   const div = document.createElement('div');
-  div.innerText = input;
+  div.innerText = inputStr;
   return div.innerHTML;
 }
 
