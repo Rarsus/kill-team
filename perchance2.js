@@ -560,8 +560,8 @@ generateWhatHappensNextIdeas() => {
 
       let html = textSoFar.trim().split("\n").filter(l => /^[0-9]+\./.test(l.trim())).map(l => l.replace(/^[0-9]+\./g, "").trim()).map(ideaText => {
         const ideaTextEscaped = sanitizeInput(ideaText);
-        // Extra escaping for attribute value to prevent attribute injection
-        const ideaAttrEscaped = ideaText.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        // For attribute values, use sanitized text and add quote escaping
+        const ideaAttrEscaped = ideaTextEscaped.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         return `<div style="border:1px solid gray; margin:0.25rem; display:flex; padding:0.25rem; border-radius:3px;">
           <div style="">${ideaTextEscaped}</div>
           <button data-idea="${ideaAttrEscaped}" onclick="whatHappensNextEl.value=this.dataset.idea; whatHappensNextSuggestionsCtn.style.display='none';">use</button>
