@@ -1,6 +1,80 @@
 ai = {import:ai-text-plugin}
 commentsPlugin = {import:comments-plugin}
 fullscreenButton = {import:fullscreen-button-plugin}
+
+// Constants for action option length limits
+MAX_ACTION_LENGTH = 100
+
+// Helper function to sanitize HTML and prevent XSS
+sanitizeHTML(str) =>
+  if(!str) return "";
+  let div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+
+// Helper function to sanitize and normalize story log text
+sanitizeStoryLog(text) =>
+  if(!text) return "";
+  // Remove triple-hyphens used in prompt templates
+  text = text.replaceAll("\n---\n", "\n").replaceAll("\n---", "");
+  // Normalize numbered lists to hyphens
+  text = text.replace(/\n[0-9]\. /g, "\n- ");
+  text = text.replace(/$1\. /g, "");
+  // Remove AI formatting variations
+  text = text.replace(/\nAlternatively, you could choose to:\n/, "\n");
+  text = text.replace(/\nOr, you could:\n/, "\n");
+  // Fix missing Option 3 prefix
+  text = text.replace(/(Option 2:[^\n]+)\nAlternatively, you could /, "$1\nOption 3: Alternatively, you could ");
+  // Normalize option formatting
+  text = text.replace("Here are 3 possible actions that you could take next:", "");
+  text = text.replace(/Option ([0-9]): (You could|Or, you could|Alternatively, you could)/g, "Option $1: You");
+  // Remove excessive newlines
+  text = text.replace(/\n{3,}/g, "\n\n");
+  return text;
+
+// Helper function to save story to localStorage with error handling
+saveStoryLog(text) =>
+  try {
+    localStorage.storyLog = text;
+  } catch(e) {
+    console.error("Failed to save story log to localStorage:", e);
+    showErrorMessage("Warning: Unable to save progress. Your browser may have localStorage disabled.");
+  }
+
+// Helper function to truncate action text with ellipsis
+truncateAction(action) =>
+  if(!action) return "";
+  let text = action.trim();
+  if(text.length > MAX_ACTION_LENGTH) {
+    return text.substring(0, MAX_ACTION_LENGTH - 3) + "...";
+  }
+  return text;
+
+// Helper function to show error messages to the user
+showErrorMessage(message) =>
+  if(outputEl) {
+    let errorDiv = document.createElement("div");
+    errorDiv.style.cssText = "color: #ff4444; background: #fff0f0; padding: 0.5rem; margin: 0.5rem 0; border-radius: 3px; border-left: 3px solid #ff4444;";
+    errorDiv.textContent = message;
+    outputEl.prepend(errorDiv);
+  }
+
+// Helper function to validate custom action input
+validateCustomAction(action) =>
+  if(!action || typeof action !== 'string') {
+    return { valid: false, error: "Please enter an action." };
+  }
+  let trimmed = action.trim();
+  if(trimmed.length === 0) {
+    return { valid: false, error: "Action cannot be empty." };
+  }
+  if(trimmed.length < 3) {
+    return { valid: false, error: "Action is too short. Please be more descriptive." };
+  }
+  if(trimmed.length > 500) {
+    return { valid: false, error: "Action is too long. Please keep it under 500 characters." };
+  }
+  return { valid: true, action: trimmed };
   
 // storyPrompt 
 //   instruction
@@ -22,11 +96,11 @@ fullscreenButton = {import:fullscreen-button-plugin}
 //     storyLogEl.scrollTop = storyLogEl.scrollHeight; // scroll to the bottom of the story log as the chunks come in
 //     outputEl.innerHTML += data.textChunk;
 //   onFinish(data) =>
-//     storyLogEl.value = storyLogEl.value.replaceAll("\n---\n", "\n"); // in case it includes the triple-hyphens that I'm using to enclose the "response template" in the prompt
-//     storyLogEl.value = storyLogEl.value.replace(/\n[0-9]\. /g, "\n- "); // in case the AI uses numbered items instead of hyphens
-//     localStorage.storyLog = storyLogEl.value;
+//     storyLogEl.value = sanitizeStoryLog(storyLogEl.value);
+//     saveStoryLog(storyLogEl.value);
 //     renderCurrentSituation();
 //     if(data.stopReason === "error") {
+//       showErrorMessage("An error occurred while generating the story. Please try again.");
 //       backBtn.click();
 //     }
 //     backBtn.disabled = false;
@@ -35,115 +109,152 @@ fullscreenButton = {import:fullscreen-button-plugin}
 
 executeAction(action, opts) =>
   if(!opts) opts = {};
+  
+  // Validate custom actions
   if(opts.isCustom) {
+    let validation = validateCustomAction(action);
+    if(!validation.valid) {
+      showErrorMessage(validation.error);
+      return;
+    }
+    action = validation.action;
     storyLogEl.value += `\n\nPLAYER ACTION (custom): ${action}\n\n`; 
   } else {
     storyLogEl.value += `\n\nPLAYER ACTION: ${action}\n\n`; 
   }
   generate();
 
-async generate() =>
-  window.storyLogTextBeforeLastSituationGenerated = storyLogEl.value;
+// Helper function to initialize generation state
+initializeGenerationState() =>
+  let state = {
+    pendingObj: null,
+    actionsPendingObj: null,
+    stop: false
+  };
   
-  function finishStuff() {
-    // backBtn.disabled = false;
-    // regenerateBtn.disabled = false;
+  let finishGeneration = () => {
     startOverBtn.style.display = "";
     loadingEl.innerHTML = "";
     stopNoticeEl.style.visibility = "hidden";
-  }
+  };
   
-  let pendingObj, actionsPendingObj;
-  
-  let stop = false;
   window.currentGenerateController = {
     stop: function() {
-      stop = true;
-      finishStuff();
-      if(pendingObj) pendingObj.stop();
-      if(actionsPendingObj) actionsPendingObj.stop();
+      state.stop = true;
+      finishGeneration();
+      if(state.pendingObj) state.pendingObj.stop();
+      if(state.actionsPendingObj) state.actionsPendingObj.stop();
     },
   };
   
-  // disable the regen and undo buttons for a moment to prevent double clicks and make the UI more clear
+  return { state, finishGeneration };
+
+// Helper function to setup UI for generation
+setupGenerationUI() =>
   backBtn.disabled = true;
   regenerateBtn.disabled = true;
+  outputEl.innerHTML = "";
+  
+  // Show stop notice after a delay to prevent double clicks
   setTimeout(() => {
     stopNoticeEl.style.visibility = "visible";
     backBtn.disabled = false;
     regenerateBtn.disabled = false;
   }, 3000);
-  
-  // first we generation the continuation based on the chosen action:
+
+// Helper function to generate story continuation
+async generateStoryContinuation(state) =>
   let stopDueToNewlines = false;
-  pendingObj = ai({
-    instruction: storyLogEl.value.trim() === "" ? firstInstruction : storyContinuationInstruction,
-    startWith: storyLogEl.value.trim() === "" ? "You, the player, are" : "",
+  let isFirstGeneration = storyLogEl.value.trim() === "";
+  
+  state.pendingObj = ai({
+    instruction: isFirstGeneration ? firstInstruction : storyContinuationInstruction,
+    startWith: isFirstGeneration ? "You, the player, are" : "",
     onChunk: (data) => {
       if(stopDueToNewlines) return;
+      
+      // Stop if too many newlines (indicates AI is done with the paragraph)
       if([...data.fullTextSoFar.matchAll(/\n+/g)].length >= 3) {
-        pendingObj.stop();
+        state.pendingObj.stop();
         stopDueToNewlines = true;
       }
-      let textChunk = data.textChunk;
-      if(stopDueToNewlines) textChunk.split("\n")[0];
+      
       storyLogEl.value += data.textChunk;
-      storyLogEl.scrollTop = storyLogEl.scrollHeight; // scroll to the bottom of the story log as the chunks come in
+      storyLogEl.scrollTop = storyLogEl.scrollHeight;
       outputEl.innerHTML += data.textChunk;
     },
-    // stopSequences: ["\n3.", "---"],  
   });
   
+  // Show loading indicator after a brief delay
   setTimeout(() => {
-    loadingEl.innerHTML = pendingObj.loadingIndicatorHtml; 
+    loadingEl.innerHTML = state.pendingObj.loadingIndicatorHtml; 
   }, 10);
-  outputEl.innerHTML = "";
   
-  let data = await pendingObj.onFinishPromise;
-  if(stop) {
-    return;
+  let data = await state.pendingObj.onFinishPromise;
+  
+  if(!state.stop) {
+    storyLogEl.value = sanitizeStoryLog(storyLogEl.value);
+    saveStoryLog(storyLogEl.value);
+    
+    if(data.stopReason === "error") {
+      showErrorMessage("Failed to generate story continuation. Please try again.");
+    }
   }
   
-  storyLogEl.value = storyLogEl.value.replaceAll("\n---", ""); // in case it includes the triple-hyphens that I'm using to enclose the "response template" in the prompt
-  storyLogEl.value = storyLogEl.value.replace(/$1\. /g, "").replace(/\n[0-9]\. /g, "\n");
-  localStorage.storyLog = storyLogEl.value;
-  
-  // if(data.stopReason === "error") {
-  //   backBtn.click();
-  //   return;
-  // }
-  
-  // now we generate 3 possible actions they could take:
+  return state.stop;
+
+// Helper function to generate action options
+async generateActionOptions(state) =>
   outputEl.innerHTML += "\n\n";
-  actionsPendingObj = ai({ 
+  
+  state.actionsPendingObj = ai({ 
     instruction: actionOptionsInstruction,
     startWith: "Here are 3 possible actions that you could take next:\nOption 1: You could choose to",
     onChunk: (data) => {
       storyLogEl.value += data.textChunk;
-      storyLogEl.scrollTop = storyLogEl.scrollHeight; // scroll to the bottom of the story log as the chunks come in
+      storyLogEl.scrollTop = storyLogEl.scrollHeight;
       outputEl.innerHTML += data.textChunk;
     },
     stopSequences: ["Which action do you choose?", "Which option do you choose?"],
   });
   
-  let actionsData = await actionsPendingObj.onFinishPromise;
-  if(stop) {
-    return;
+  let actionsData = await state.actionsPendingObj.onFinishPromise;
+  
+  if(!state.stop) {
+    storyLogEl.value = sanitizeStoryLog(storyLogEl.value);
+    saveStoryLog(storyLogEl.value);
+    
+    if(actionsData.stopReason === "error") {
+      showErrorMessage("Failed to generate action options. Please try again.");
+    }
   }
   
-  // sometimes the AI puts this on its own line before the third option:
-  storyLogEl.value = storyLogEl.value.replace(/\nAlternatively, you could choose to:\n/, "\n");
-  storyLogEl.value = storyLogEl.value.replace(/\nOr, you could:\n/, "\n");
+  return state.stop;
+
+// Main generate function - orchestrates story and action generation
+async generate() =>
+  window.storyLogTextBeforeLastSituationGenerated = storyLogEl.value;
   
-  // sometimes the AI forgets to add Option 3: at the start of the 3rd option:
-  storyLogEl.value = storyLogEl.value.replace(/(Option 2:[^\n]+)\nAlternatively, you could /, "$1\nOption 3: Alternatively, you could ");
+  let { state, finishGeneration } = initializeGenerationState();
+  setupGenerationUI();
   
-  storyLogEl.value = storyLogEl.value.replace("Here are 3 possible actions that you could take next:", "");
-  storyLogEl.value = storyLogEl.value.replace(/Option ([0-9]): (You could|Or, you could|Alternatively, you could)/g, "Option $1: You");
-  localStorage.storyLog = storyLogEl.value;
-  renderCurrentSituation();
-  
-  finishStuff();
+  try {
+    // Generate story continuation
+    let stopped = await generateStoryContinuation(state);
+    if(stopped) return;
+    
+    // Generate action options
+    stopped = await generateActionOptions(state);
+    if(stopped) return;
+    
+    // Render the complete situation
+    renderCurrentSituation();
+  } catch(error) {
+    console.error("Generation error:", error);
+    showErrorMessage("An unexpected error occurred. Please try regenerating.");
+  } finally {
+    finishGeneration();
+  }
   
   
   
@@ -155,76 +266,129 @@ handleRegenButtonClick() =>
     window.currentGenerateController.stop();
     stopNoticeEl.style.visibility = "hidden";
   }
+  
   if(window.storyLogTextBeforeLastSituationGenerated) {
     storyLogEl.value = window.storyLogTextBeforeLastSituationGenerated;
   } else {
-    // remove all the lines after the last/latest action:
+    // Remove all lines after the last player action
     let lines = storyLogEl.value.split("\n");
-    while(1) {
-      if(lines.length === 0) break;
+    while(lines.length > 0) {
       let lastLine = lines.pop();
       if(lastLine.startsWith("PLAYER ACTION")) {
-        lines.push(lastLine); // put it back
+        lines.push(lastLine);
         break;
       }
     }
-    storyLogEl.value = lines.join("\n")+"\n\n";
+    storyLogEl.value = lines.join("\n") + "\n\n";
   }
+  
   generate();
 
+// Helper function to create action button HTML with sanitization
+createActionButton(actionText) =>
+  let sanitized = sanitizeHTML(actionText);
+  let truncated = truncateAction(actionText);
+  let displayText = sanitizeHTML(truncated);
+  
+  return `<div class="action-item" style="margin-top:0.5rem; display:flex;"><span style="margin-right:0.25rem; background:var(--box-color); padding:0.25rem; border-radius:3px; flex-grow:1;">${displayText}</span><button style="min-width:max-content; max-width:max-content;" data-action="${sanitized}" onclick="executeAction(this.dataset.action);">do this</button></div>`;
+
+// Helper function to render story paragraph with edit button
+renderStoryParagraph(paragraphText) =>
+  let storyParagraphDiv = document.createElement("div");
+  storyParagraphDiv.style.position = "relative";
+  storyParagraphDiv.id = "storyParagraphDiv";
+  
+  // Safely format quoted text with emphasis
+  let formattedText = paragraphText.replace(/"(.*?)"/g, (match, p1) => {
+    let sanitized = sanitizeHTML(p1);
+    return `<i style="opacity:0.6;">"${sanitized}"</i>`;
+  });
+  
+  storyParagraphDiv.innerHTML = formattedText;
+  
+  // Add edit button
+  let editButton = document.createElement("button");
+  editButton.onclick = function() {
+    storyParagraphEdit();
+  };
+  editButton.style.cssText = "font-size: 80%; margin-left: 0.25rem;";
+  editButton.textContent = "edit";
+  storyParagraphDiv.append(editButton);
+  
+  return storyParagraphDiv;
+
+// Helper function to render custom action input
+renderCustomActionInput(customActionPrefill) =>
+  let customActionDiv = document.createElement("div");
+  let prefillValue = sanitizeHTML(customActionPrefill || "");
+  
+  customActionDiv.innerHTML = `<div class="action-item" style="margin-top:0.5rem; display:flex;"><span style="margin-right:0.25rem; background:var(--box-color); padding:0.25rem; border-radius:3px; flex-grow:1;"><input onkeydown="if(event.which === 13) { event.preventDefault(); customActionDoItBtn.click(); }" style="width:100%;" id="customActionInputEl" placeholder="Type a custom action..." value="${prefillValue}"></span><button id="customActionDoItBtn" style="min-width:max-content; max-width:max-content;" onclick="executeAction(customActionInputEl.value, {isCustom:true});">do this</button></div>`;
+  
+  return customActionDiv;
+
+// Helper function to extract current situation text from story log
+extractCurrentSituation() =>
+  let parts = storyLogEl.value.split(/(PLAYER ACTION.+)/);
+  let filtered = parts.filter(t => !t.startsWith("PLAYER ACTION:"));
+  return filtered.pop() || "";
+
+// Main render function - displays current story situation and action options
 renderCurrentSituation(opts) => 
   if(!opts) opts = {};
+  
+  // Handle empty story log - show start screen
   if(storyLogEl.value.trim() === "") {
     outputEl.innerHTML = "";
     startCtn.style.display = "";
     topButtonsCtn.style.display = "none";
     return;
   }
-  topButtonsCtn.style.display = "";
   
+  topButtonsCtn.style.display = "";
   loadingEl.innerHTML = "";
+  
+  // Clean up any incomplete player action markers
   if(storyLogEl.value.trim().endsWith("PLAYER ACTION:")) {
     storyLogEl.value = storyLogEl.value.trim().replace(/PLAYER ACTION:$/m, "").trim();
   }
   
-  let currentSituationText = storyLogEl.value.split(/(PLAYER ACTION.+)/).filter(t => !t.startsWith("PLAYER ACTION:")).pop();
+  // Extract and prepare current situation text
+  let currentSituationText = extractCurrentSituation();
+  currentSituationText = currentSituationText.replace(/\n+/g, "\n").trim();
   
-  // add button to the action bullet points:
-  outputEl.innerHTML = currentSituationText.replace(/\n+/g, "\n").replace(/\nOption [0-9]: ?(.+)/g, (match, p1) => `<div class="action-item" style="margin-top:0.5rem; display:flex;"><span style="margin-right:0.25rem; background:var(--box-color); padding:0.25rem; border-radius:3px; flex-grow:1;">${p1.trim()}</span><button style="min-width:max-content; max-width:max-content;" data-action="${p1.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")}" onclick="executeAction(this.dataset.action);">do this</button></div>`).trim();
+  // Split into story paragraph and action options
+  let parts = currentSituationText.split(/\nOption [0-9]:/);
+  let storyText = parts[0] || "";
   
-  // hacky, but it'll do for now:
-  let storyParagraph = outputEl.childNodes[0].textContent;
-  storyParagraph =  storyParagraph.replace(/"(.*?)"/g, (match, p1) => `<i style="opacity:0.6;">"${p1}"</i>`)
-  outputEl.childNodes[0].remove();
-  let storyParagraphDiv = document.createElement("div");
-  storyParagraphDiv.style.position = "relative";
-  storyParagraphDiv.innerHTML = storyParagraph;
-  storyParagraphDiv.id = "storyParagraphDiv";
-  outputEl.prepend(storyParagraphDiv);
-  let editButton = document.createElement("button");
-  editButton.onclick = function() {
-    storyParagraphEdit();
-  };
-  editButton.style.cssText = "font-size: 80%; margin-left: 0.25rem;";
-  editButton.innerHTML = "edit";
-  storyParagraphDiv.append(editButton);
+  // Clear output and render story paragraph
+  outputEl.innerHTML = "";
+  if(storyText) {
+    let storyParagraphDiv = renderStoryParagraph(storyText);
+    outputEl.append(storyParagraphDiv);
+  }
   
-  // add custom action item:
-  let customActionDiv = document.createElement("div"); 
-  customActionDiv.innerHTML = `<div class="action-item" style="margin-top:0.5rem; display:flex;"><span style="margin-right:0.25rem; background:var(--box-color); padding:0.25rem; border-radius:3px; flex-grow:1;"><input onkeydown="if(event.which === 13) { event.preventDefault(); customActionDoItBtn.click(); }" style="width:100%;" id="customActionInputEl" placeholder="Type a custom action..." value="${opts.customActionPrefill || ""}"></span><button id="customActionDoItBtn" style="min-width:max-content; max-width:max-content;" onclick="executeAction(customActionInputEl.value, {isCustom:true});">do this</button></div>`;
+  // Render action buttons
+  let actionMatches = [...currentSituationText.matchAll(/\nOption [0-9]: ?(.+)/g)];
+  actionMatches.forEach(match => {
+    let actionText = match[1].trim();
+    let actionButtonHTML = createActionButton(actionText);
+    let tempDiv = document.createElement("div");
+    tempDiv.innerHTML = actionButtonHTML;
+    outputEl.append(tempDiv.firstChild);
+  });
   
-  let lastActionItemEl = [...outputEl.querySelectorAll(".action-item")].pop();
-  if(lastActionItemEl) lastActionItemEl.after(customActionDiv);
-  else outputEl.append(customActionDiv); // just in case the AI didn't generate any actions for whatever reason
-
-  storyLogBtn.style.display = ''; // show the 'full story logs' button
+  // Add custom action input
+  let customActionDiv = renderCustomActionInput(opts.customActionPrefill);
+  outputEl.append(customActionDiv);
+  
+  // Show the 'full story logs' button
+  storyLogBtn.style.display = '';
 
 
 
 async storyParagraphEdit() =>
   let editResolver;
 
-  // storyParagraphDiv.style.paddingBottom = "1.5rem"; // to make room for the continue button under the textarea
   storyParagraphDiv.style.minHeight = "7rem";
 
   let textareaWrapper = document.createElement("div");
@@ -246,22 +410,26 @@ async storyParagraphEdit() =>
   textarea.focus();
 
   textarea.onchange = async function() {
-    await new Promise(r => setTimeout(r, 300)); // no idea why but without this massive delay the continueBtn handler doesn't get a change to fire if it was what causes this onchange event to fire (due to the textarea losing focus). small delay (e.g. 10ms) doesn't work
+    await new Promise(r => setTimeout(r, 300)); // delay needed for textarea blur to trigger properly
     editResolver(textarea.value);
   };
+  
   function clickAnywhereHandler(e) {
-    console.log(e);
     if(e.target !== textarea) editResolver(textarea.value);
   }
+  
   window.addEventListener("mousedown", clickAnywhereHandler); // mousedown rather than click else click-and-drag to highlight that ends outside of the textarea will trigger it
+  
   let newText = await new Promise(resolve => {
     editResolver = resolve;
   });
+  
   window.removeEventListener("mousedown", clickAnywhereHandler);
 
   textareaWrapper.remove();
 
   storyLogEl.value = storyLogEl.value.replace(originalText, newText);
+  saveStoryLog(storyLogEl.value);
   
   renderCurrentSituation();
 
@@ -271,15 +439,18 @@ handleBackButtonClick() =>
     window.currentGenerateController.stop();
     stopNoticeEl.style.visibility = "hidden";
   }
+  
   let parts = storyLogEl.value.split("PLAYER ACTION");
   storyLogEl.value = parts.slice(0, -1).join("PLAYER ACTION").trim();
+  
   let lastPart = parts[parts.length-1];
   let customActionPrefill = null;
   if(lastPart.trim().startsWith("(custom):")) {
     customActionPrefill = lastPart.split("\n")[0].replace("(custom):", "").trim();
   }
+  
   regenerateBtn.disabled = true;
-  localStorage.storyLog = storyLogEl.value;
+  saveStoryLog(storyLogEl.value);
   renderCurrentSituation({customActionPrefill});
 
 
@@ -311,7 +482,7 @@ firstInstruction
   Your task as the game master is to write the opening paragraph of a text adventure story based on the following description/idea:
   [adventureDescriptionEl.value.trim() || `A fun, interesting, creative, and engaging adventure.`]
   [""]
-  This is the opening paragraph - the spark that should elicit fascination within the player's imagination. It should be interesting, authentic, descriptive, natural, engaging, and creative.
+  This is the opening paragraph - the spark that should elicit fascination within the player's imagination. It should be interesting, authentic, descriptive, natural, engaging, and creative. Paint a vivid picture with sensory details and set the tone for an exciting adventure. Make the player curious about what happens next.
   $output = [this.joinItems("\n")]
   
   
@@ -324,7 +495,7 @@ storyContinuationInstruction
   ---
   That's the story so far. Write the next paragraph of this captivating story. This is a never-ending adventure story - do not try to "wrap up" the story. You must pay attention to the most recent [this.latestLogs.includes("PLAYER ACTION:") ? `"PLAYER ACTION"` : "action that the player took"], shown above.
   The player provided these writing instructions: [writingInstructionsEl.value.trim() || "Be creative."]
-  Remember, you must write exactly ONE paragraph in your response. Write in a clean, crisp, and engaging style.
+  Remember, you must write exactly ONE paragraph in your response. Write in a clean, crisp, and engaging style. Be specific and concrete with consequences. Show, don't tell.
   $output = [this.joinItems("\n")]
   
   
@@ -343,7 +514,7 @@ actionOptionsInstruction
   That's the story so far. Pay attention to the most recent events (at the end), since you need to come up with 3 possible actions that the player could take next. Try to write actions that you think the player would *love*, based on their previous actions.
   Avoid unnecessary repetition of previous story elements.
   The player provided these writing instructions: [writingInstructionsEl.value.trim() || "Be creative!"]
-  The actions choices must be interesting and short. Your goal is to try to guess at actions that the player might like to take based on their past actions. Try to cater to the player's evident play-style and desires.
+  The action choices must be interesting, short (under 100 characters), and varied. Your goal is to try to guess at actions that the player might like to take based on their past actions. Try to cater to the player's evident play-style and desires. Make each option distinct - one bold/aggressive, one cautious/thoughtful, and one creative/unexpected.
   Your response MUST follow the following template:\n
   ---
   Here are 3 possible actions that you could take next:
@@ -352,7 +523,7 @@ actionOptionsInstruction
   Option 3: Alternatively, you could \[...\]
   Which action do you choose?
   ---\n
-  You MUST write your response using the above template. Just give ideas for *actions* that could be taken - not consequences. Remember to add the question "Which action do you choose?" after the 3 possible actions.
+  You MUST write your response using the above template. Just give ideas for *actions* that could be taken - not consequences. Keep each action concise and under 100 characters. Remember to add the question "Which action do you choose?" after the 3 possible actions.
   $output = [this.joinItems("\n")]
 
 $meta
