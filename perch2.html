@@ -1,0 +1,1779 @@
+
+
+<script>window.pageLoadStartTime=Date.now();</script>
+<script>window.onForcedColorSchemeChangeHandlers = new Set();</script> 
+<script>
+// Placeholders for Story Bible section updates.
+window.bibleSectionPlaceholders = {
+  'playerInfoEl': '<update_marker_player>',
+  'charactersInfoEl': '<update_marker_characters>',
+  'locationsInfoEl': '<update_marker_locations>',
+  'eventsInfoEl': '<update_marker_events>',
+  'loreInfoEl': '<update_marker_lore>',
+  'mysteriesInfoEl': '<update_marker_mysteries>'
+};
+</script>
+<script>
+window.lastBibleGenerationData = {};
+</script>
+[favicon("https://user-uploads.perchance.org/file/f913a068fa7f9271f4528cc5cd282ba5.png")]
+
+<div id="topStuffEl">
+  <h1 style="margin-top:1rem; font-size:140%;">[$meta.title.split("(")[0].trim()]</h1>
+  <p id="subtitleEl" style="font-size:85%; opacity:0.8; padding:0 0.5rem;">Helps you write a <i>long</i> story, paragraph-by-paragraph, based on your overview and instructions, with a story bible, and TTS availability.</p>
+</div>
+<script>
+  if(localStorage.generateCount && Number(localStorage.generateCount) > 5) {
+    subtitleEl.style.display = "none";
+  }
+</script>
+
+<!--  CSS for the tabbed interface -->
+<style>
+  #trackingTabsCtn {
+    width: 100%;
+    margin-top: 0.5rem;
+    border: 1px solid var(--box-border-color, #888);
+    border-radius: 4px;
+    background-color: var(--box-color, #f9f9f9);
+  }
+  #tabButtons {
+    display: flex;
+    flex-wrap: wrap; /* Allow tabs to wrap on small screens */
+    border-bottom: 1px solid var(--box-border-color, #888);
+  }
+  .tab-btn {
+    padding: 8px 12px;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--box-border-color, #888); /* Add bottom border for inactive */
+    opacity: 0.7;
+    font-size: 85%;
+    color: var(--tab-text-color, #000); /* Use variable for text color */
+  }
+  /* Remove right border, use bottom border for separation */
+  .tab-btn:last-child {
+    border-right: none;
+  }
+  .tab-btn.active {
+    background-color: var(--tab-active-bg, #fff); /* Use variable for active BG */
+    opacity: 1;
+    border-bottom: 1px solid var(--tab-active-bg, #fff); /* Hide bottom border */
+    margin-bottom: -1px; /* Pulls the tab content up */
+    font-weight: bold;
+  }
+  .tab-content {
+    display: none;
+    padding: 8px;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .tab-content textarea {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
+  }
+  /* Style for the generate button row in each tab */
+  .tab-generate-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 4px;
+  }
+  .tab-generate-bar button {
+    font-size: 80%;
+    padding: 4px 8px;
+  }
+  .tab-loader {
+    font-size: 80%;
+    display: none; /* Hide loader by default */
+  }
+</style>
+
+
+<div style="text-align:left; display:flex; flex-direction:column; width:95%; max-width:700px; margin:0 auto; justify-content:center; align-items:center; margin-top:0.5rem;">
+  <div style="height:0px;position:relative;width:100%;text-align:right;"><span id="storyOverviewLengthNoticeEl" hidden style="font-size:70%;background:#202020;color:#cb6900;padding:0.2rem;border-radius:3px;width:max-content;bottom: 0;position: absolute;right: 0;">⚠️ long overview = reduced memory</span></div>
+  <textarea id="storyOverviewEl" oninput="localStorage.storyOverview=this.value; checkOverlyLongFixedTokens();" placeholder="(Optional) What should the story be about? Write some keywords, or an overview, or starter for the story. You can also optionally include characters, plot, writing style, world lore, genre, reminders, etc." style="display:block; width:100%; min-height:7rem; margin-bottom:0.5rem;"></textarea> 
+  <script>
+    let { countTokens, idealMaxContextTokens } = ai({getMetaObject:true});
+    let checkOverlyLongFixedTokens_debounce = null;
+    function checkOverlyLongFixedTokens() {
+      clearTimeout(checkOverlyLongFixedTokens_debounce);
+      checkOverlyLongFixedTokens_debounce = setTimeout(() => {
+        storyOverviewLengthNoticeEl.hidden = (countTokens(storyOverviewEl.value) < idealMaxContextTokens*0.5);
+      }, 600);
+    }
+    setTimeout(checkOverlyLongFixedTokens, 3000);
+  </script>
+
+  <button id="storyBeginBtn" onclick="this.disabled=true; this.textContent='⏳ loading...'; generateBtn.click();" style="font-size:120%; margin-top: 1rem;">📝 begin story</button>
+  <div id="storyBeginOptionsCtn">
+    <div style="font-size:80%; opacity:0.7; margin:0.5rem; text-align:center;">or</div>
+    <button onclick="storyBeginBtn.hidden=true; storyGenerationAreaEl.hidden=false; storyBeginOptionsCtn.hidden=true;" style="font-size:70%;">open full editor</button>
+  
+  </div>
+  
+  <div id="storyGenerationAreaEl" hidden style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; margin-top:0.75rem;">
+    <div style="width:100%; position:relative;">
+      <!-- <textarea id="storySoFarEl" oninput="localStorage.storySoFar=this.value" placeholder="The story will appear here when you click the generate button below. You can edit it as needed." style="display:block; margin:0 auto; width:100%; max-width:98vw; min-height:400px; padding-bottom:1.5rem; scrollbar-gutter:stable;"></textarea> -->
+      
+      <button id="storySoFarDeleteBtn" data-mode="delete" onclick="if(this.dataset.mode==='delete') { if(confirm(`Delete all of the current story text?`)) {window.deletedStorySoFar=storySoFarEl.value; storySoFarEl.value=''; this.dataset.mode='undo'; localStorage.storySoFar=storySoFarEl.value;} } else { storySoFarEl.value=window.deletedStorySoFar; this.dataset.mode='delete'; localStorage.storySoFar=storySoFarEl.value; };" style="position:absolute; top:-0.75rem; right:0.5rem; font-size:60%; z-index:3"></button>
+      <style>
+        #storySoFarDeleteBtn[data-mode='delete']:before { content:'🗑️ delete'; }
+        #storySoFarDeleteBtn[data-mode='undo']:before { content:'↩️ undo'; }
+      </style>
+      
+      <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%;">
+        <div id="storySoFarEl_placeholder"></div> 
+      </div>
+      <script>
+        window.storySoFarEl = createTextEditor({
+          // Color/style the text based on some "regex" matching rules. You can copy paste these to an AI like Claude or ChatGPT, and ask to change them to whatever you want. Just make sure when you paste the new rules back in, you follow the exact same structure/format as you see below.
+          textStyleRules: [
+            {match: /(\s|^)\*\*[^*"“”]+?\*\*/g, style: "font-weight:bold;"},
+            {match: /(\s|^)\*[^*"“”]+?\*/g,     style: "font-style:italic;"},
+            {match: /(^|\n)\(.+\)\s*$/g,        style: "font-style:italic;"},
+            {match: /(^|\n)SUMMARY\^[0-9]+: /g, style: "font-weight:bold;"},
+            {match: /(^|\n)#+ [^\n]*/g,         style: "font-weight:bold;"},
+          ],
+        });
+        storySoFarEl.id="storySoFarEl";
+
+        // back-compat for lack of light-dark() browser support:
+        function updateTextStyleRuleColors() {
+          let darkMode = document.documentElement.style.colorScheme !== "light";
+          // document.querySelector(':root').style.setProperty(`--text-style-rule-asterisk-color`, darkMode ? "#a1a1a1" : "#606060");
+          // document.querySelector(':root').style.setProperty(`--text-style-rule-block-quote-color`, darkMode ? "#ffc86e" : "#7c3e00");
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTextStyleRuleColors);
+        updateTextStyleRuleColors();
+        window.onForcedColorSchemeChangeHandlers.add(updateTextStyleRuleColors);
+
+        // Default text color:
+        window.onForcedColorSchemeChangeHandlers.add(function({colorScheme}) {
+          storySoFarEl.style.color = (colorScheme==="light") ? "black" : "#bebebe";
+          storySoFarEl.style.backgroundColor = (colorScheme==="light") ? "white" : "black";
+        });
+        
+        storySoFarEl_placeholder.replaceWith(storySoFarEl);
+        storySoFarEl.style.cssText = `display:block; padding-bottom:1.5rem; width:100%; max-width:98vw; min-height:400px; max-height:80vh; height:${window.innerHeight*0.3}px;`;
+        
+        storySoFarEl.placeholder = `The story will appear here when you click the generate button below. You can edit it as needed.`;
+        
+        storySoFarEl.addEventListener("input", function() {
+          storySoFarDeleteBtn.dataset.mode = 'delete';
+          window.storyTextBeforeLastGeneration = null; // otherwise regen button clears edits that user has made since last generation
+          
+          clearTimeout(window.storySoFarSaveOnInputDebounceTimeout);
+          window.storySoFarSaveOnInputDebounceTimeout = setTimeout(() => {
+            localStorage.storySoFar = storySoFarEl.value;
+          }, 2000);
+        });
+      </script>
+      <div id="loaderEl" style="position:absolute; bottom:1.5rem; right:0.25rem;"></div>
+      <div style="min-height:0.5rem; width:100%; bottom:0;">
+        <div id="bottomButtonsCtn" style="display:none; position:relative; bottom:0.5rem; font-size:80%; text-align:center; display:flex; width:min(270px, 95%); justify-content:space-between; margin:0 auto;">
+
+          <div id="rateLastMessageCtn" style="display:none; position:relative; height:min-content;">
+            <div id="ratingReasonCtn" style="display:none; position:absolute; text-align:center; width:100%; top:0; height:0px;">
+              <div style="position:absolute; bottom:0.25rem; text-align:center; width:max-content;">
+                <input id="ratingReasonEl" list="recentRatingReasonsDataList" placeholder="(Optional) Reason" style="width:150px;">
+                <datalist id="recentRatingReasonsDataList"></datalist>
+              </div>
+            </div>
+            <button id="rateLastMessageBadBtn" disabled onclick="rateLastMessage('bad');" style="filter:hue-rotate(300deg);">👎</button>
+            <button id="rateLastMessageGoodBtn" disabled onclick="rateLastMessage('good');" style="margin-left:0.25rem; filter:hue-rotate(35deg) saturate(0.9);">👍</button>
+          </div>
+
+          <button id="regenLastBtn" onclick="if(window.storyTextBeforeLastGeneration) { storySoFarEl.value=window.storyTextBeforeLastGeneration; } else { storySoFarEl.value=storySoFarEl.value.trim().split('\n\n').slice(0, -1).join('\n\n'); }; localStorage.storySoFar=storySoFarEl.value; continueStory();" style="">🔁 regen last</button>
+
+          <div id="deleteLastCtn" style="position:relative; height:min-content; display:inline-block;">
+            <div id="undoDeleteLastParagraphCtn" style="display:none; position:absolute; text-align:center; width:100%; font-size:80%; top:0; height:0px;"><div style="position:absolute; bottom:0.25rem; text-align:center; width:100%;"><button style="width:max-content; margin-bottom:0.25rem; min-height:1.7rem; font-size:120%;" onclick="undoDeleteLastParagraph();">↩️ undo</button></div></div>
+            <button id="deleteLastBtn" onclick="deleteLastParagraph()">🗑️ delete last</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <script>
+      updateLastParagraphButtonsDisplayIfNeeded();
+    </script>
+    <script>
+      storySoFarEl.addEventListener('click', function(e) { // if they're almost scrolled to the bottom, and they click near the bottom, scroll down the last tiny bit
+        let lowerFifth = this.offsetHeight * 8 / 10;
+        let closeToBottom = this.scrollHeight - this.scrollTop - this.clientHeight < 40; // <-- if scrolled this many px from bottom
+        if(e.offsetY > lowerFifth && closeToBottom) {
+          this.scrollTop = this.scrollHeight;
+        }
+      });
+    </script>
+
+    
+
+    <div style="width:100%; display:flex; margin-top:0.25rem;">
+      <textarea id="whatHappensNextEl" oninput="localStorage.whatHappensNext=this.value; deleteWhatHappensNextBtn.hidden=!this.value.trim();" onkeydown="if(event.key==='Enter') { event.preventDefault(); generateBtn.click(); }" placeholder="What should happen next? (optional)" style="display:block; width:100%; font-size:0.8rem; height:3rem; resize:vertical;"></textarea> 
+      <button id="deleteWhatHappensNextBtn" onclick="whatHappensNextEl.value=''; localStorage.whatHappensNext=''; this.hidden=true;" title="Delete the current 'what will you do next' text." style="margin-left:0.25rem;">🗑️</button>
+      <script>setTimeout(() => { deleteWhatHappensNextBtn.hidden=!whatHappensNextEl.value.trim(); }, 100);</script>
+      <div id="whatHappensNextSuggestionsOuterWrapper" style="margin-left:0.25rem; position:relative;">
+        <button id="generateWhatHappensNextIdeasBtn" onclick="generateWhatHappensNextIdeas()" style="height:100%;" title="Generate ideas about what should happen next.">💡</button>
+        <div style="width:0; height:0; top:-0.25rem; right:-1rem; position:absolute;">
+          <div id="whatHappensNextSuggestionsCtn" style="display:none; font-size:85%; white-space:pre-wrap; position:absolute; bottom:0; right:0; min-width:310px; max-width:95%; background:var(--box-color); border:1px solid grey; border-radius:3px; padding:0.25rem;"></div>
+          <script>
+            window.addEventListener("click", function(e) {
+              // bit hacky, bit it'll do
+              if(document.body.contains(e.target) && !whatHappensNextSuggestionsOuterWrapper.contains(e.target)) {
+                whatHappensNextSuggestionsCtn.style.display = "none";
+              }
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:0.5rem; display:flex; align-items:center;">
+      <button id="generateBtn" onclick="primeTTS(); continueStory()" style="font-size:150%;">▶️ generate</button>
+      <div style="display:inline-flex; align-items:center; min-height:100%; width:0; position:relative;">
+        <button id="stopBtn" onclick="window.userClickedStop = true; window.lastGenerationStreamObj.stop(); this.style.display='none'; stopSpeech();" style="display:none; margin-left:0.5rem; min-width:max-content; font-size:80%;">🛑 stop</button>
+      </div>
+    </div>
+    <div style="display:flex; border:1px solid grey; padding:0.25rem; border-radius:3px; margin-top:0.5rem;"><input id="oneParagraphAtATimeCheckbox" type="checkbox" checked style="cursor:pointer;" oninput="localStorage.oneParagraphAtATime = this.checked ? '1' : '';"><span style="margin-left:0.25rem; font-size:80%; cursor:pointer; user-select:none;" onclick="oneParagraphAtATimeCheckbox.click();">one paragraph at a time</span></div>
+
+
+    <!-- Button to enable tracking and the tab structure -->
+  <button id="enableTrackingBtn" onclick="enableDetailedTracking()" style="font-size: 90%; padding: 6px 10px; margin-top: 0.5rem;">Enable Detailed Tracking (Story Bible)</button>
+  
+  <div id="trackingTabsCtn" style="display: none;">
+    
+    <div style="text-align: right; padding: 4px 4px 0 0; margin-bottom: -10px; position: relative; z-index: 2;">
+      <button id="disableTrackingBtn" onclick="disableDetailedTracking()" style="font-size: 70%; padding: 2px 5px;" title="Hide the Story Bible and stop it from being included in the AI's context.">Disable Tracking</button>
+    </div>
+
+    <div id="tabButtons">
+      <button class="tab-btn active" onclick="showTab('player')">Player & Inventory</button>
+      <button class="tab-btn" onclick="showTab('characters')">Other Characters</button>
+      <button class="tab-btn" onclick="showTab('locations')">Locations</button>
+      <button class="tab-btn" onclick="showTab('events')">Events & Plot</button>
+      <button class="tab-btn" onclick="showTab('lore')">Lore & Factions</button>
+      <button class="tab-btn" onclick="showTab('mysteries')">Mysteries & Plot Threads</button>
+      <button class="tab-btn" onclick="showTab('scratchpad')">Scratch Pad</button>
+    </div>
+    
+    <div id="tab-player" class="tab-content active">
+      <textarea id="playerInfoEl" oninput="localStorage.playerInfo = this.value" placeholder="Enter player info, stats, inventory, etc."></textarea>
+      <!--  Generate button bar for this tab -->
+      <div class="tab-generate-bar">
+        <div style="font-size:70%; opacity:0.7; margin-bottom:0.125rem; margin-right:auto; margin-left:auto; text-align:center; width:50%;">Checks the story up until the sections placeholder, which will be where it was last generated. If it doesn't generate, then there was no new info found.</div>        
+        <span class="tab-loader" id="loader-playerInfoEl">⏳</span>
+        <button id="stop-playerInfoEl" onclick="if(window.currentBibleGeneration) window.currentBibleGeneration.stop();" style="display: none;">🛑 Stop</button>
+        <button id="regen-playerInfoEl" onclick="regenerateBibleSection('playerInfoEl')" title="Regenerates using the story text (saved in the background) that was used for the last Auto-Generate">🔁 Regenerate</button>
+        <button id="gen-playerInfoEl" onclick="generateBibleSection('playerInfoEl')">✨ Auto-Generate</button>
+       
+      </div>
+    </div>
+    <div id="tab-characters" class="tab-content">
+      <textarea id="charactersInfoEl" oninput="localStorage.charactersInfo = this.value" placeholder="Describe other key characters, their motivations, relationships, etc."></textarea>
+      <!--  Generate button bar for this tab -->
+      <div class="tab-generate-bar">
+        <div style="font-size:70%; opacity:0.7; margin-bottom:0.125rem; margin-right:auto; margin-left:auto; text-align:center; width:50%;">Checks the story up until the sections placeholder, which will be where it was last generated. If it doesn't generate, then there was no new info found.</div>        
+        <span class="tab-loader" id="loader-charactersInfoEl">⏳</span>
+        <button id="stop-charactersInfoEl" onclick="if(window.currentBibleGeneration) window.currentBibleGeneration.stop();" style="display: none;">🛑 Stop</button>
+        <button id="regen-charactersInfoEl" onclick="regenerateBibleSection('charactersInfoEl')" title="Regenerates using the story text (saved in the background) that was used for the last Auto-Generate">🔁 Regenerate</button>
+        <button id="gen-charactersInfoEl" onclick="generateBibleSection('charactersInfoEl')">✨ Auto-Generate</button>
+      </div>
+    </div>
+    <div id="tab-locations" class="tab-content">
+      <textarea id="locationsInfoEl" oninput="localStorage.locationsInfo = this.value" placeholder="Describe important locations, cities, dungeons, etc."></textarea>
+      <!--  Generate button bar for this tab -->
+      <div class="tab-generate-bar">
+        <div style="font-size:70%; opacity:0.7; margin-bottom:0.125rem; margin-right:auto; margin-left:auto; text-align:center; width:50%;">Checks the story up until the sections placeholder, which will be where it was last generated. If it doesn't generate, then there was no new info found.</div>
+        <span class="tab-loader" id="loader-locationsInfoEl">⏳</span>
+        <button id="stop-locationsInfoEl" onclick="if(window.currentBibleGeneration) window.currentBibleGeneration.stop();" style="display: none;">🛑 Stop</button>
+        <button id="regen-locationsInfoEl" onclick="regenerateBibleSection('locationsInfoEl')" title="Regenerates using the story text (saved in the background) that was used for the last Auto-Generate">🔁 Regenerate</button>
+        <button id="gen-locationsInfoEl" onclick="generateBibleSection('locationsInfoEl')">✨ Auto-Generate</button>
+      </div>
+    </div>
+    <div id="tab-events" class="tab-content">
+      <textarea id="eventsInfoEl" oninput="localStorage.eventsInfo = this.value" placeholder="Summarize key past events or ongoing plot points."></textarea>
+      <!--  Generate button bar for this tab -->
+      <div class="tab-generate-bar">
+        <div style="font-size:70%; opacity:0.7; margin-bottom:0.125rem; margin-right:auto; margin-left:auto; text-align:center; width:50%;">Checks the story up until the sections placeholder, which will be where it was last generated. If it doesn't generate, then there was no new info found.</div>
+        <span class="tab-loader" id="loader-eventsInfoEl">⏳</span>
+        <button id="stop-eventsInfoEl" onclick="if(window.currentBibleGeneration) window.currentBibleGeneration.stop();" style="display: none;">🛑 Stop</button>
+        <button id="regen-eventsInfoEl" onclick="regenerateBibleSection('eventsInfoEl')" title="Regenerates using the story text (saved in the background) that was used for the last Auto-Generate">🔁 Regenerate</button>
+        <button id="gen-eventsInfoEl" onclick="generateBibleSection('eventsInfoEl')">✨ Auto-Generate</button>
+      </div>
+    </div>
+    <div id="tab-lore" class="tab-content">
+      <textarea id="loreInfoEl" oninput="localStorage.loreInfo = this.value" placeholder="Describe the world's lore, factions, history, magic systems, etc."></textarea>
+      <div class="tab-generate-bar">
+        <div style="font-size:70%; opacity:0.7; margin-bottom:0.125rem; margin-right:auto; margin-left:auto; text-align:center; width:50%;">Checks the story up until the sections placeholder, which will be where it was last generated. If it doesn't generate, then there was no new info found.</div>
+        <span class="tab-loader" id="loader-loreInfoEl">⏳</span>
+        <button id="stop-loreInfoEl" onclick="if(window.currentBibleGeneration) window.currentBibleGeneration.stop();" style="display: none;">🛑 Stop</button>
+        <button id="regen-loreInfoEl" onclick="regenerateBibleSection('loreInfoEl')" title="Regenerates using the story text (saved in the background) that was used for the last Auto-Generate">🔁 Regenerate</button>
+        <button id="gen-loreInfoEl" onclick="generateBibleSection('loreInfoEl')">✨ Auto-Generate</button>
+      </div>
+    </div>
+    <div id="tab-mysteries" class="tab-content">
+      <textarea id="mysteriesInfoEl" oninput="localStorage.mysteriesInfo = this.value" placeholder="Keep track of unresolved mysteries, plot threads, foreshadowing, etc."></textarea>
+      <div class="tab-generate-bar">
+        <div style="font-size:70%; opacity:0.7; margin-bottom:0.125rem; margin-right:auto; margin-left:auto; text-align:center; width:50%;">Checks the story up until the sections placeholder, which will be where it was last generated. If it doesn't generate, then there was no new info found.</div>
+        <span class="tab-loader" id="loader-mysteriesInfoEl">⏳</span>
+        <button id="stop-mysteriesInfoEl" onclick="if(window.currentBibleGeneration) window.currentBibleGeneration.stop();" style="display: none;">🛑 Stop</button>
+        <button id="regen-mysteriesInfoEl" onclick="regenerateBibleSection('mysteriesInfoEl')" title="Regenerates using the story text (saved in the background) that was used for the last Auto-Generate"">🔁 Regenerate</button>
+        <button id="gen-mysteriesInfoEl" onclick="generateBibleSection('mysteriesInfoEl')">✨ Auto-Generate</button>
+      </div>
+    </div>
+    <div id="tab-scratchpad" class="tab-content">
+      <textarea id="scratchpadEl" oninput="localStorage.scratchpad = this.value" placeholder="Your private notes, ideas, and scratchpad. This content is NOT sent to the AI."></textarea>
+    </div>
+  </div>
+
+
+    
+    <div style="display:flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 0.5rem; width: 100%;">
+      <div class="settingsModule" style="padding: 0.4rem; background: var(--box-color); border: 1px solid var(--box-border-color); border-radius: 3px; min-width: max-content; height: max-content;">
+        <div style="font-size:80%; opacity:0.7; margin-bottom:0.125rem; text-align:center;">— perspective —</div>
+        <select id="perspectiveSelect" onchange="localStorage.perspective = this.value" style="display:block; margin:0 auto; min-width:130px;">
+          <option value="first">First Person (I, me, my)</option>
+          <option value="second">Second Person (you, your)</option>
+          <option value="third" selected>Third Person (he, she, they)</option>
+        </select>
+      </div>
+
+      <div class="settingsModule" style="padding: 0.4rem; background: var(--box-color); border: 1px solid var(--box-border-color); border-radius: 3px; min-width: max-content; height: max-content;">
+        <div style="font-size:80%; opacity:0.7; margin-bottom:0.125rem; text-align:center;">— genre —</div>
+        <select id="genreSelect" onchange="localStorage.genre = this.value" style="display:block; margin:0 auto; min-width:130px;">
+          <option value="default" selected>Default (no change)</option>
+          <option value="fantasy">Fantasy</option>
+          <option value="dark_fantasy">Dark Fantasy</option>
+          <option value="sci_fi">Sci-Fi</option>
+          <option value="noir">Noir</option>
+          <option value="mystery">Mystery</option>
+          <option value="thriller">Thriller</option>
+          <option value="horror">Horror</option>
+          <option value="contemporary">Contemporary</option>
+          <option value="slice_of_life">Slice of Life</option>
+          <option value="romance">Romance</option>
+          <option value="self_help">Self-Help</option>
+          <option value="historical_fiction">Historical Fiction</option>
+          <option value="dystopian">Dystopian</option>
+          <option value="cyberpunk">Cyberpunk</option>
+          <option value="steampunk">Steampunk</option>
+          <option value="erotic">Erotic</option>
+        </select>
+      </div>
+
+<div class="settingsModule" style="padding: 0.4rem; background: var(--box-color); border: 1px solid var(--box-border-color); border-radius: 3px; min-width: max-content; height: max-content;">
+  <div style="font-size:80%; opacity:0.7; margin-bottom:0.125rem; text-align:center;">— style —</div>
+  
+  <select id="styleSelect" onchange="localStorage.style = this.value; update();" style="display:block; margin:0 auto; min-width:130px;">
+    
+    <option value="default" selected>Novel Style (Default)</option>
+    
+    <option value="descriptive">Descriptive</option>
+    <option value="minimalist">Minimalistic</option>
+    <option value="poetic">Poetic</option>
+    <option value="journalistic">Journalistic</option>
+    <option value="stream_of_consciousness">Stream of Consciousness</option>
+    <option value="epistolary">Epistolary</option>
+    <option value="satirical">Satirical</option>
+    <option value="gothic">Gothic</option>
+    <option value="romantic">Romantic</option>
+    <option value_l="realist">Realist</option>
+    <option value="naturalist">Naturalist</option>
+    
+    <option value="modernist">Modernist</option>
+    
+  </select>
+</div>
+  
+      <div id="ttsSettingsModule" class="settingsModule" style="padding: 0.4rem; background: var(--box-color); border: 1px solid var(--box-border-color); border-radius: 3px; min-width: max-content; height: max-content;">
+        <div style="font-size:80%; opacity:0.7; margin-bottom:0.125rem; text-align:center;">— text-to-speech —</div>
+        <div style="display:flex; justify-content:center; align-items:center; min-height:26px; user-select:none;">
+          <!-- 
+            when the box is checked to unlock the speech API.
+          -->
+          <input type="checkbox" id="ttsCheckbox" onchange="localStorage.ttsEnabled = this.checked; if(this.checked) { primeTTS(); } else { stopSpeech(); }" style="margin:0; cursor:pointer;">
+          <label for="ttsCheckbox" style="font-size:80%; margin-left:0.5rem; cursor:pointer;">🔊 Enable TTS</label>
+        </div>
+    
+        <div style="font-size:60%; opacity:0.7; margin-top:0.25rem; width: 200px; text-align:center;">
+          ⚠️ TTS uses voices from your browser/OS. Support is best in Chrome, Edge, Safari, and Firefox.
+        </div>
+        
+        <!--  Added this voice selector dropdown -->
+        <div style="margin-top:0.5rem; text-align:center;">
+          <select id="voiceSelect" onchange="localStorage.ttsVoice = this.value" style="font-size:80%; min-width: 200px; padding: 0.25rem; border-radius: 3px;"></select>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Hide TTS controls if not supported by the browser
+      if (typeof speechSynthesis === 'undefined') {
+        const ttsModule = document.getElementById('ttsSettingsModule');
+        if (ttsModule) ttsModule.style.display = 'none';
+      }
+    </script>
+    
+    <div style="margin-top:1rem; display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+      <button onclick="saveStoryDataToUsersDevice()" title="Ctrl+S / Cmd+S" style="width:max-content; height:min-content;">💾 save</button>
+      <button onclick="loadStoryDataFromUsersDevice()" style="width:max-content; height:min-content;">📁 load</button>
+      <button id="copyStoryBtn" onclick="copyStoryToClipboard()" style="width:max-content; height:min-content;">📋 copy story</button>
+      <button id="shareStoryBtn" onclick="generateShareLinkForStory()" title="Save as sharable link" style="width:max-content; height:min-content;">🔗 share</button>
+    </div>
+    <div>
+      <div id="shareLinkCtn" hidden style="margin-top:0.5rem;">
+        <input style="width:300px;" id="shareStoryLinkInputEl"> <button style="min-width:80px;" onclick="navigator.clipboard.writeText(shareStoryLinkInputEl.value).then(r => this.innerHTML='✅'); setTimeout(() => this.innerHTML='copy link', 2000);">copy link</button>
+        <div style="font-size:70%; opacity:0.7;">(this link contains a snapshot of the story data at the time the link was generated)</div>
+      </div>
+    </div>
+    <!-- <div style="margin-top:1.5rem; font-size:80%;">
+      <button onclick="if(confirm(`This will delete all the existing story text. Are you sure?`)) { storySoFarEl.value=''; localStorage.storySoFar=''; }" title="Delete the existing story text." style="width:max-content; height:min-content; margin-left:1rem;">❌ delete story text</button>
+    </div> -->
+    <script>
+      function storyDataChangedHandler() {
+        shareStoryBtn.hidden = false;
+        shareLinkCtn.hidden = true;
+      }
+      storyOverviewEl.addEventListener('input', storyDataChangedHandler);
+      storySoFarEl.addEventListener('input', storyDataChangedHandler);
+      whatHappensNextEl.addEventListener('input', storyDataChangedHandler);
+      generateBtn.addEventListener("click", storyDataChangedHandler);
+    </script>
+    <script>
+      document.addEventListener('keydown', e => {
+        if((e.ctrlKey || e.metaKey) && e.key === 's') {
+          e.preventDefault(); // prevent the browser save dialog from opening
+          saveStoryDataToUsersDevice();
+        }
+      });
+    </script>
+  </div>
+</div>
+
+<script>
+  // Functions to control the tab UI
+  function enableDetailedTracking() {
+    document.getElementById('trackingTabsCtn').style.display = 'block';
+    document.getElementById('enableTrackingBtn').style.display = 'none';
+    localStorage.trackingEnabled = 'true';
+    // The placeholder logic will now be handled individually by the auto-generate function for each section.
+    // No placeholders will be added when enabling tracking.
+  }
+
+  //  Function to disable tracking
+  function disableDetailedTracking() {
+    if (confirm("Are you sure you want to disable the Story Bible? This will hide the tracking tabs and stop sending this data to the AI.")) {
+      document.getElementById('trackingTabsCtn').style.display = 'none';
+      document.getElementById('enableTrackingBtn').style.display = 'block';
+      localStorage.trackingEnabled = 'false';
+      if (window.storySoFarEl) {
+        // Also remove all bible-related placeholders when disabling tracking.
+        let storyText = window.storySoFarEl.value;
+        if (window.bibleSectionPlaceholders) {
+            Object.values(window.bibleSectionPlaceholders).forEach(ph => {
+                storyText = storyText.replace(new RegExp(`\\n*\\s*${ph.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n*`, 'g'), "\n\n");
+            });
+        }
+        window.storySoFarEl.value = storyText.replace(/\n{3,}/g, '\n\n').trim();
+        localStorage.storySoFar = window.storySoFarEl.value;
+      }
+    }
+  }
+
+  function showTab(tabName) {
+    // Hide all tab content
+    const contents = document.querySelectorAll('.tab-content');
+    contents.forEach(c => c.style.display = 'none');
+    
+    // Deactivate all tab buttons
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(b => b.classList.remove('active'));
+    
+    // Show the selected tab content
+    document.getElementById('tab-' + tabName).style.display = 'block';
+    
+    // Activate the selected tab button
+    document.querySelector(`.tab-btn[onclick="showTab('${tabName}')"]`).classList.add('active');
+    
+    //  Update tab colors for dark/light mode
+    updateTabColors(getCurrentColorScheme());
+  }
+</script>
+
+
+<script>
+  window.initialDataLoadFinished = false;
+  (async function() {
+    loadChatDataIntoInputAreas();
+    
+    let hash = window.location.hash.slice(1);
+    if(hash && hash.startsWith("data=")) {
+      let result = await loadDataFromUrlHash();
+      if(!result.success) {
+        loadChatDataIntoInputAreas();
+      }
+    }
+    window.initialDataLoadFinished = true;
+
+    checkOverlyLongFixedTokens();
+  })();
+</script>
+
+<script>
+  document.addEventListener("visibilitychange", () => {
+    if(document.hidden) {
+      localStorage.storySoFar = storySoFarEl.value;
+    }
+  });
+  window.addEventListener("beforeunload", function() {
+    localStorage.storySoFar = storySoFarEl.value;
+  });
+</script>
+
+<script>
+  // NOTE TO SELF: this is pretty self-contained. Just need to change storySoFarEl, storyOverviewEl, autoBackupsOuterEl, and autoBackupsListCtn to suit.
+  (async function() {
+    while(!window.initialDataLoadFinished) await new Promise(r => setTimeout(r, 1000));
+    
+    function getFileContentHash() { // just some roughly unique identifier of file to test if content has changed.
+      //  Include tab content in the hash
+      let tabContent = '';
+      if (localStorage.trackingEnabled === 'true') {
+        tabContent = (localStorage.playerInfo || '') + (localStorage.charactersInfo || '') + (localStorage.locationsInfo || '') + (localStorage.eventsInfo || '') + (localStorage.loreInfo || '') + (localStorage.mysteriesInfo || '') + (localStorage.scratchpad || '');
+      }
+      return storySoFarEl.value + storyOverviewEl.value + tabContent;
+    }
+    
+    //////////////////////////////////////
+    //             BACKUPS              //
+    //////////////////////////////////////
+    const fileId = 0; // <-- hardcoded for now - maybe allow multiple later
+    const maxAutoBackupInterval = 1000*60*5;
+    const oldAutoBackupCleaningInterval = 1000*60*20;
+    const maxAutoBackupAge = 1000*60*60*24*30;
+    const maxAutoBackupsPerFile = 15;
+    let lastAutoBackupTime = Date.now();
+    let lastFileContentHashSeen = getFileContentHash();
+    async function doAutoBackupIfNeeded() {
+      if(Date.now()-lastAutoBackupTime < maxAutoBackupInterval) return; // at most once every few mins
+      if(lastFileContentHashSeen === getFileContentHash()) return; // only if text has changed
+      lastFileContentHashSeen = getFileContentHash();
+
+      lastAutoBackupTime = Date.now();
+      let backupsArray = await kv.autoBackups.get(fileId) || [];
+      let data = getCurrentStoryData();
+      backupsArray.unshift({creationTime:Date.now(), data});
+      // if there are more than `maxAutoBackupsPerFile` backups, delete every second one in the second half of the array:
+      if(backupsArray.length > maxAutoBackupsPerFile) {
+        backupsArray = backupsArray.filter((backup, i) => i < maxAutoBackupsPerFile/2 ? true : i%2===0);
+      }
+      await kv.autoBackups.set(fileId, backupsArray);
+      console.log(`Saved AUTO-backup. New backupsArray:`, backupsArray);
+      renderAutoBackupsList();
+    };
+    setTimeout(async () => {
+      let persistent = await navigator.storage.persist();
+      if(!persistent) console.warn("Browser denied persistent local storage.");
+    }, 1000*60*20);
+    setInterval(async () => {
+      let changed = false;
+      let entries = await kv.autoBackups.entries();
+      // for *every* file they have backups for (not just the file they're currently viewing/editing):
+      for(let [fileId, backupsArray] of entries) {
+        let originalLength = backupsArray.length;
+        // delete the backup array entries older than several weeks:
+        backupsArray = backupsArray.filter(backup => Date.now()-backup.creationTime < maxAutoBackupAge);
+        if(originalLength === backupsArray.length) continue;
+        // save changes:
+        if(backupsArray.length === 0) {
+          await kv.autoBackups.delete(fileId);
+          changed = true;
+        } else {
+          console.log(`Cleared ${originalLength-backupsArray.length} old auto-backups. New backupsArray:`, backupsArray);
+          await kv.autoBackups.set(fileId, backupsArray);
+          changed = true;
+        }
+      }
+      if(changed) renderAutoBackupsList();
+    }, oldAutoBackupCleaningInterval);
+    
+    window.loadAutoBackupClickHandler = function(index) {
+      if(!confirm("⚠️ 𝗖𝗮𝘂𝘁𝗶𝗼𝗻: Loading this backup will overwrite your current data. Please save your current data first if you want to keep it. Continue loading the selected backup?")) return;
+      let backupObj = window.lastRenderedAutoBackupsArray[index];
+      loadChatDataIntoInputAreas(backupObj.data);
+      loadDataIntoLocalStorage(backupObj.data);
+      document.scrollingElement.scrollTop = 0;
+      lastFileContentHashSeen = getFileContentHash();
+    };
+    window.deleteAllAutoBackupsClickHandler = async function() {
+      if(!confirm("⚠️ 𝗖𝗮𝘂𝘁𝗶𝗼𝗻: This will delete the full list of auto-backup files. Are you sure?")) return;
+      await kv.autoBackups.delete(fileId);
+      renderAutoBackupsList();
+    };
+    
+    async function renderAutoBackupsList(opts={}) {
+      let autoBackupsArray = await kv.autoBackups.get(fileId) || [];
+      if(autoBackupsArray.length > 0) {
+        window.lastRenderedAutoBackupsArray = autoBackupsArray;
+        let html = autoBackupsArray.slice(0, opts.maxItems||999999).map((d, i) => `<li style="list-style-type:none; margin-top:${i===0 ? 0 : 0.25}rem; font-size:80%;"><button onclick="window.loadAutoBackupClickHandler(${i})" style="margin-right:0.25rem;">📦 load</button><span>${new Date(d.creationTime).toString().split(" ").slice(1, 5).join(" ").replace(/:[0-9][0-9]$/, "").replace(` ${new Date().getFullYear()} `, " ")}</span> (<b>browser storage</b>)</li>`).join("");
+        autoBackupsListCtn.innerHTML = html;
+        autoBackupsOuterEl.hidden = false;
+      } else {
+        autoBackupsListCtn.innerHTML = "";
+        autoBackupsOuterEl.hidden = true;
+      }
+    }
+    renderAutoBackupsList();
+    
+    let lastChangeHandlerCallTime = Date.now();
+    function mainTextChangeHandler() {
+      if(Date.now()-lastChangeHandlerCallTime < 1000) return;
+      try {
+        doAutoBackupIfNeeded();
+        clearTimeout(doAutoBackupDebounceTimeout);
+        doAutoBackupDebounceTimeout = setTimeout(() => { // without this, we can still lose up to `maxAutoBackupInterval` worth of work, which is annoying
+          doAutoBackupIfNeeded();
+        }, maxAutoBackupInterval*1.2);
+      } catch(e) { console.error(e); }
+      lastChangeHandlerCallTime = Date.now();
+    }
+
+    storySoFarEl.addEventListener("input", mainTextChangeHandler);
+    storyOverviewEl.addEventListener("input", mainTextChangeHandler);
+    
+    //  Add event listeners to new textareas
+    if (document.getElementById('playerInfoEl')) {
+        document.getElementById('playerInfoEl').addEventListener("input", mainTextChangeHandler);
+        document.getElementById('charactersInfoEl').addEventListener("input", mainTextChangeHandler);
+        document.getElementById('locationsInfoEl').addEventListener("input", mainTextChangeHandler);
+        document.getElementById('eventsInfoEl').addEventListener("input", mainTextChangeHandler);
+        document.getElementById('loreInfoEl').addEventListener("input", mainTextChangeHandler);
+        document.getElementById('mysteriesInfoEl').addEventListener("input", mainTextChangeHandler);
+        document.getElementById('scratchpadEl').addEventListener("input", mainTextChangeHandler);
+    }
+    
+  })();
+</script>
+
+<script>
+  window.continueTextButtonClickHandler = function() { // NOTE: this handler is also used for Tab key press event when the continue button is visible.
+    if(storySoFarEl.selectionStart !== storySoFarEl.selectionEnd && storySoFarEl.value.slice(storySoFarEl.selectionEnd).trim() === "") { // they highlighted some text at the end of the chat logs and then clicked the continue button that appears above it
+      storySoFarEl.value = storySoFarEl.value.slice(0, storySoFarEl.selectionStart);
+    }
+    continueStory({continueInline:true});
+  };
+  if(typeof continueTextBtn === "undefined") { // <-- just so, while generator is being edited, multiple buttons aren't created
+    let tmp = document.createElement("div");
+    tmp.innerHTML = `<button id="continueTextBtn" hidden style="position:absolute; cursor:pointer; font-size:65%; min-width:max-content;">▶️<span id="continueTextBtnTabLabel" hidden> (tab)</span></button>`;
+    let btn = tmp.firstElementChild;
+    btn.onmousedown = window.continueTextButtonClickHandler;
+
+    let isTouchScreen = window.matchMedia("(pointer: coarse)").matches;
+    if(!isTouchScreen && !localStorage.haveUsedTabToContinueText) btn.querySelector("#continueTextBtnTabLabel").hidden = false;
+    
+    storySoFarEl.view.scrollDOM.append(btn);
+  }
+  
+  storySoFarEl.addEventListener('keydown', function(e) {
+    if(e.key === 'Tab') {
+      e.preventDefault();
+      if(continueTextBtn.offsetHeight !== 0) {
+        localStorage.haveUsedTabToContinueText = "1";
+        continueTextBtnTabLabel.hidden = true;
+        window.continueTextButtonClickHandler(); // if it's visible, and they press tab, then click it for them
+      }
+    } else if(storySoFarEl.value.length !== storySoFarEl.selectionEnd) {
+      continueTextBtn.hidden = true;
+    }
+  });
+  
+  storySoFarEl.caret.observe(function(e) {
+    if(storySoFarEl.selectionEnd < storySoFarEl.value.length-100) { // early exit optimization. and can't check if they're equal because we want to show button if only whitespace after cursor
+      continueTextBtn.hidden = true;
+      return;
+    }
+    
+    let lineHeight = e.offsetHeight;
+        
+    let textAfterSelectionEnd = storySoFarEl.value.slice(storySoFarEl.selectionEnd);
+    let thereIsOnlyWhiteSpaceAfterCaret = /^\s*$/.test(textAfterSelectionEnd);
+    
+    if(e.isVisible && thereIsOnlyWhiteSpaceAfterCaret) {
+      continueTextBtn.hidden = false;
+      let buttonHeight = continueTextBtn.offsetHeight;
+      if(storySoFarEl.selectionStart == storySoFarEl.selectionEnd) {
+        continueTextBtn.style.left = `${e.offsetLeft + 15}px`;
+        continueTextBtn.style.top = `${e.offsetTop - 0.5*(buttonHeight-lineHeight)}px`;
+      } else {
+        continueTextBtn.style.left = `${e.offsetLeft}px`;
+        continueTextBtn.style.top = `${e.offsetTop - buttonHeight*1.3 - 0.5*(buttonHeight-lineHeight)}px`;
+      }
+    } else {
+      continueTextBtn.hidden = true;
+    }
+  });
+  storySoFarEl.addEventListener('blur', () => {
+    continueTextBtn.hidden = true;
+  });
+  document.addEventListener('click', (event) => {
+    if(!storySoFarEl.contains(event.target)) {
+      continueTextBtn.hidden = true; // not sure why this is required in Chrome Android (blur event handler should be enough)
+    }
+  });
+
+  function getLineHeightInPixels(element) {
+    const style = window.getComputedStyle(element);
+    let lineHeight = style.lineHeight;
+    if(lineHeight === 'normal') { // Normal line heights are usually 1.2 times the font size
+      const fontSize = parseFloat(style.fontSize);
+      lineHeight = fontSize * 1.2;
+    } else {
+      lineHeight = parseFloat(lineHeight);
+    }
+    return lineHeight;
+  }
+  function pageXYIsInsideElement(x, y, element) {
+    const { left, top, right, bottom } = element.getBoundingClientRect();
+    return x >= left + window.pageXOffset && x <= right + window.pageXOffset && y >= top + window.pageYOffset && y <= bottom + window.pageYOffset;
+  }
+  
+  // If down arrow pressed when caret is at bottom of storySoFarEl textarea, move caret to whatHappensNextEl, and vice versa for up arrow press when at top of whatHappensNextEl
+  document.addEventListener('keydown', function(e) {
+    if(e.target.tagName.toLowerCase() !== 'textarea' && !storySoFarEl.contains(e.target)) return;
+    
+    let target = e.target;
+    if(storySoFarEl.contains(target)) target = storySoFarEl;
+
+    let isTopTextarea = storySoFarEl.contains(target);
+    let isBottomTextarea = whatHappensNextEl.contains(target);
+
+    if(e.key === 'ArrowDown' && isTopTextarea) {
+      let cursorAtBottom = target.selectionStart === target.value.length;
+      if(cursorAtBottom) {
+        e.preventDefault();
+        whatHappensNextEl.focus();
+      }
+    } else if(e.key === 'ArrowUp' && isBottomTextarea) {
+      let cursorAtTop = target.selectionStart === 0;
+      if(cursorAtTop) {
+        e.preventDefault();
+        storySoFarEl.focus();
+      }
+    }
+  });
+</script>
+
+
+<script>
+  setInterval(async () => {
+    let persistent = await navigator.storage.persist();
+    if(persistent) console.log("Storage will not be cleared except by explicit user action.");
+    else console.warn("Storage may be cleared by the browser under storage pressure.");
+  }, 1000*60*15);
+</script>
+
+<div id="autoBackupsOuterEl" hidden style="margin-top:2rem;">
+  <div style="display:flex; flex-direction:column; background:var(--box-color); border-radius:3px; width:min-content; margin:0 auto; border:1px solid var(--box-border-color);">
+    <div style="font-size:1rem; font-weight:bold; padding:0.25rem;">🗄️ Auto-Backups</div>
+    <div id="autoBackupsListCtn" style="margin: 0 auto; width:max-content; border:1px solid var(--box-border-color); border-left:none; border-right:none; padding:0.5rem; max-height:8rem; overflow:auto; text-align:left;"></div>
+    <div style="padding:0.25rem;">
+      <button style="font-size:80%;" onclick="window.deleteAllAutoBackupsClickHandler();">🗑️ delete <b>all</b> auto-backup files</button>
+    </div>
+  </div>
+</div>
+
+<ul style="font-size:80%; max-width:640px; margin:1rem auto; margin-top:2rem; padding-bottom:0.5rem; padding-left:1.125rem; padding-right:0.25rem; background:var(--box-color); border:1px solid var(--box-border-color); border-radius:3px;">
+  <li style="margin-top:0.5rem;">I'll be periodically updating this generator with new features and improvements. If you want to see what's been updated, or have any suggestions, feel free to share them in the <a href="https://discord.com/channels/970057744612724746/1435697673414905956" target="_blank">Perchance Discord</a>.</li>  
+  <li style="margin-top:0.5rem;">If you notice that the Player & Inventory's Auto-Generation is adding too much, or adding extra characters, it's likey because the AI can't tell who the main character is. Explicitly stating who the Main Character is in the Overview (at the top) will fix it</li>
+  <li style="margin-top:0.5rem;">TTS is only available on devices that utilize the Web Speech API, which is most modern browsers. If yours doesn't support it, the TTS pane won't be visible.</li>  
+  <li style="margin-top:0.5rem;">Once you begin your story, you can <b>manually edit</b> the text by just tapping in the text box, and this is a good way to control the AI's writing style, since it'll tend to follow the writing style of the previous text.</li>  <li style="margin-top:0.5rem;">This version is equiped with a Story Bible (story tracking system) that is broken down into 6 parts: <b>Player & Inventory</b>, <b>Other Characters</b>, <b>Locations</b>, <b>Events & Plot</b>, <b>Lore & Factions</b>, and <b>Mysteries & Plot Threads</b>. This is a great way to keep track of your story's details and ensure consistency. You can add, edit, and delete entries as needed, and can press the generate button to generate new entries based on the story so far. If there is no story, then it will add a new template based on the <b>Overview.</b> </li>  
+  <li style="margin-top:0.5rem;">This page uses your browser's 'localStorage' to <b>remember your story even after you refresh the page</b>. To remove the data, just select all the text in the text boxes and delete it. Your stories are <b style="color:#e98721;">not</b> stored on a server. They're stored privately in your browser/device storage only. <b>Download/backup your story often</b> using the 💾 save button.</li>
+  <li style="margin-top:0.5rem;">The <a href="https://perchance.org/ai-character-description" target="_blank">AI Character Description</a> generator may come in handy.</li>
+  <li style="margin-top:0.5rem;">The <a href="https://perchance.org/ai-story-outline" target="_blank">AI Story Outline Generator</a> and <a href="https://perchance.org/ai-plot-generator" target="_blank">AI Plot Generator</a> may come in handy if you're out of ideas.</li>
+  <li style="margin-top:0.5rem;">And the <a href="https://perchance.org/ai-text-to-image-generator" target="_blank">AI Image Generator</a> to create images for characters/scenes/etc.</li>
+  <li style="margin-top:0.5rem;">Maybe also try the <a href="https://perchance.org/ai-generated-hierarchical-world" target="_blank">Hierarchical World Generator</a> if you need to brainstorm world building ideas.</li>
+  <li style="margin-top:0.5rem;">Want to play around <i>"inside"</i> your story's world? Try <a href="/ai-rpg" target="_blank" style="font-weight:bold; color:#2bbb00;">AI RPG</a>.</li>
+  <li style="margin-top:0.5rem;">Prefer a chat/RP-style interface? Try the simple <a href="https://perchance.org/ai-chat" target="_blank">AI Chat</a> page, or the more advanced <a href="https://perchance.org/ai-character-chat" target="_blank">AI Character Chat</a> which can generate images within the chat.</li>
+  <li style="margin-top:0.5rem;">Want your story <b>read aloud</b> with nice background music and pictures? <a href="https://perchance.org/ai-bedtime-story" target="_blank">AI Bedtime Story</a> might be for you.</li>
+  <li style="margin-top:0.5rem;">If a generated paragraph is particularly bad or particularly good, please rate it with the thumbs up/down buttons to help improve the AI.</li>
+  <li style="margin-top:0.5rem;">Created by <a href="https://discord.com/channels/970057744612724746/1435697673414905956" target="_blank">CynicalX3D</a>, based on the original <a href="https://perchance.org/ai-story-generator" target="_blank">AI Story Generator</a> by Perchance.</li>
+
+  <li style="margin-top:0.5rem;">This generator is powered by the <a href="https://perchance.org/ai-text-plugin" target="_blank">ai-text-plugin</a>.</li>
+</ul>
+
+<script>
+
+async function continueStory(opts) {
+  if (window.currentlyGenerating) return;
+  window.currentlyGenerating = true;
+
+  try { injectSummariesAndComputeNextSummariesInBackgroundIfNeeded(); } catch (e) { console.error(e); }
+
+  window.userClickedStop = false;
+  resetRatingButtons();
+
+  continueTextBtn.style.visibility = "hidden";
+  continueTextBtn.hidden = true;
+  continueTextBtn.disabled = true;
+  window.storySoFarEl.spellcheck = false;
+
+  antiAntiLayoutJank(() => { window.storySoFarEl.value = window.storySoFarEl.value.split(/\n{2,}/).map(p => p.trim()).join("\n\n"); window.storySoFarEl.scrollTop = window.storySoFarEl.scrollHeight; });
+
+  if (!opts) opts = {};
+  
+  window.preprocessedStorySoFarText = getPreprocessedStoryText();
+  let instructionStoryChunks = window.preprocessedStorySoFarText.trim().split("\n\n");
+
+  if (window.preprocessedStorySoFarText.includes("<tracked_info>")) {
+    let instructionStoryChunksFixed = [];
+    let areWithinMultiParagraphSection = false;
+    let currentMultiParagraphSectionChunks = [];
+    for (let p of instructionStoryChunks) {
+      if (p.trim().startsWith("<tracked_info>")) areWithinMultiParagraphSection = true;
+
+      if (areWithinMultiParagraphSection) {
+        currentMultiParagraphSectionChunks.push(p);
+        if (p.trim().endsWith("</tracked_info>")) {
+          instructionStoryChunksFixed.push(currentMultiParagraphSectionChunks.join("\n\n"));
+          currentMultiParagraphSectionChunks = [];
+          areWithinMultiParagraphSection = false;
+        }
+      } else {
+        instructionStoryChunksFixed.push(p);
+      }
+    }
+    instructionStoryChunks = instructionStoryChunksFixed;
+
+    if (instructionStoryChunks.length >= 2 && instructionStoryChunks.at(-1).trim().startsWith("<tracked_info>")) {
+      let lastIndex = instructionStoryChunks.length - 1;
+      let trackedInfo = instructionStoryChunks[lastIndex];
+      instructionStoryChunks[lastIndex] = instructionStoryChunks[lastIndex - 1];
+      instructionStoryChunks[lastIndex - 1] = trackedInfo;
+    }
+  }
+  
+  let startWithText = ""; 
+  
+  if (opts.continueInline) {
+    window.continueMode = "inline";
+    startWithText = instructionStoryChunks.pop() || "";
+  } else {
+    window.continueMode = "normal";
+    startWithText = instructionStoryChunks.pop() || "";
+    if (window.storySoFarEl.value.trim()) {
+      startWithText += "\n\n";
+    }
+  }
+
+  window.storyContextForPrompt = instructionStoryChunks.join("\n\n");
+  window.startWithForPrompt = startWithText;
+
+  window.storyTextBeforeLastGeneration = window.storySoFarEl.value;
+  if (typeof speechSynthesis !== 'undefined' && speechSynthesis.speaking) { stopSpeech(); }
+  window.lastGenerationStreamObj = ai(storyWritingPrompt);
+
+  loaderEl.innerHTML = window.lastGenerationStreamObj.loadingIndicatorHtml;
+
+  let responseData = await window.lastGenerationStreamObj;
+
+  loaderEl.innerHTML = "";
+  window.currentlyGenerating = false;
+
+  if (localStorage.generateCount === undefined || isNaN(Number(localStorage.generateCount))) localStorage.generateCount = "0";
+  localStorage.generateCount = Number(localStorage.generateCount) + 1;
+  updateLastParagraphButtonsDisplayIfNeeded();
+
+  if (responseData.stopReason !== "error" && !window.userClickedStop) {
+    enableRatingButtons();
+  }
+
+  continueTextBtn.disabled = false;
+  continueTextBtn.style.visibility = "visible";
+  window.storySoFarEl.spellcheck = true;
+
+  let continueStoryGenerateCount = Number(localStorage.generateCount);
+  if (continueStoryGenerateCount > 20 && !localStorage.haveUsedTabToContinueMessage) {
+    let isTouchScreen = false;
+    try { isTouchScreen = window.matchMedia("(pointer: coarse)").matches; } catch (e) { console.error(e); }
+    if (window.innerWidth > window.innerHeight && !isTouchScreen) {
+      continueTextBtnTabLabel.style.display = "";
+    }
+  }
+  if (continueStoryGenerateCount > 5) {
+    subtitleEl.style.display = "none";
+  }
+}
+
+function getPreprocessedStoryText() {
+  let storySoFarText = window.storySoFarEl.value;
+  let resultText = storySoFarText;
+  try {
+    let messagesWithSummaryReplacements = getMessagesWithSummaryReplacements(storySoFarText);
+    messagesWithSummaryReplacements = messagesWithSummaryReplacements.map(m => m.replace(/SUMMARY\^[0-9]+:/, "Summary (previous events):").trim());
+    resultText = messagesWithSummaryReplacements.join("\n\n").trim();
+  } catch(e) {
+    console.error("Falling back to using *all* messages because there was an error while trying to compute messagesWithSummaryReplacements:", e);
+  }
+  
+  // Remove all placeholders from text that will be sent to the AI
+  Object.values(window.bibleSectionPlaceholders).forEach(ph => {
+    resultText = resultText.replace(new RegExp(`\\n*\\s*${ph.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n*`, 'g'), "\n\n");
+  });
+  resultText = resultText.replace(/\n{3,}/g, '\n\n').trim();
+
+  // The bible text is injected directly into the prompt's instruction.
+  
+  resultText = resultText.trim();
+  return resultText;
+}
+
+function regenerateBibleSection(targetTextareaId) {
+  const lastData = window.lastBibleGenerationData && window.lastBibleGenerationData[targetTextareaId];
+  if (lastData) {
+    // Restore the content of the textarea to what it was before the last generation
+    const targetTextarea = document.getElementById(targetTextareaId);
+    targetTextarea.value = lastData.existingContent;
+    
+    // Trigger a new generation, passing the last used events and a flag.
+    generateBibleSection(targetTextareaId, { isRegeneration: true, previousNewEvents: lastData.newEvents });
+  } else {
+    // Fallback if no data exists, just do a normal generation
+    generateBibleSection(targetTextareaId);
+  }
+}
+
+async function generateBibleSection(targetTextareaId, options = {}) {
+  if (window.currentlyGenerating) return;
+  window.currentlyGenerating = true;
+
+  const { isRegeneration, previousNewEvents } = options;
+
+  let storyText = storySoFarEl.value;
+  let placeholder = window.bibleSectionPlaceholders[targetTextareaId];
+  
+  if (isRegeneration && previousNewEvents !== undefined) {
+    window.newEventsForPrompt = previousNewEvents;
+  } else {
+    // Isolate new events for the prompt using the section-specific placeholder.
+    let placeholderIndex = storyText.lastIndexOf(placeholder);
+    window.newEventsForPrompt = placeholderIndex === -1 ? storyText.trim() : storyText.substring(placeholderIndex + placeholder.length).trim();
+  }
+
+  // If there are no new events since the last placeholder for this section, don't generate.
+  if (!window.newEventsForPrompt && storyText.trim()) {
+    window.currentlyGenerating = false;
+    return;
+  }
+  
+  let sectionNames = {
+    'playerInfoEl': 'Player & Inventory',
+    'charactersInfoEl': 'Other Characters',
+    'locationsInfoEl': 'Locations',
+    'eventsInfoEl': 'Events & Plot',
+    'loreInfoEl': 'Lore & Factions',
+    'mysteriesInfoEl': 'Mysteries & Plot Threads'
+  };
+  
+  window.generatingBibleSectionId = targetTextareaId;
+  window.generatingBibleSectionName = sectionNames[targetTextareaId];
+  
+  let targetTextarea = document.getElementById(targetTextareaId);
+  window.existingSectionContentForPrompt = targetTextarea.value.trim();
+  
+  // Only store the state if it's a new generation, not a regeneration
+  if (!isRegeneration) {
+    window.lastBibleGenerationData[targetTextareaId] = {
+      newEvents: window.newEventsForPrompt,
+      existingContent: window.existingSectionContentForPrompt
+    };
+  }
+  
+  let genButton = document.getElementById('gen-' + targetTextareaId);
+  let stopButton = document.getElementById('stop-' + targetTextareaId);
+  let regenButton = document.getElementById('regen-' + targetTextareaId);
+  let loader = document.getElementById('loader-' + targetTextareaId);
+  
+  genButton.disabled = true;
+  regenButton.disabled = true;
+  stopButton.style.display = 'inline-block';
+  loader.style.display = 'inline-block';
+  
+  let originalText = targetTextarea.value;
+  targetTextarea.value = "";
+  
+  window.currentBibleGeneration = ai({
+    instruction: bibleAutoUpdatePrompt.evaluateItem,
+    onChunk: (data) => {
+      if (!data.isFromStartWith) {
+        targetTextarea.value += data.textChunk;
+      }
+    }
+  });
+
+  let bibleData;
+  try {
+    bibleData = await window.currentBibleGeneration; 
+    
+    if (bibleData.stopReason === 'error' || bibleData.stopReason === 'user') {
+      targetTextarea.value = originalText;
+    } else {
+      let finalValue = targetTextarea.value.trim();
+      targetTextarea.value = finalValue;
+      if (targetTextareaId === 'playerInfoEl') localStorage.playerInfo = finalValue;
+      else if (targetTextareaId === 'charactersInfoEl') localStorage.charactersInfo = finalValue;
+      else if (targetTextareaId === 'locationsInfoEl') localStorage.locationsInfo = finalValue;
+      else if (targetTextareaId === 'eventsInfoEl') localStorage.eventsInfo = finalValue;
+      else if (targetTextareaId === 'loreInfoEl') localStorage.loreInfo = finalValue;
+      else if (targetTextareaId === 'mysteriesInfoEl') localStorage.mysteriesInfo = finalValue;
+
+      //After a successful generation, move this section's placeholder to the end of the story, ONLY IF IT ISN'T A REGENERATION.
+      if (!isRegeneration) {
+        let cleanedStoryText = storySoFarEl.value.replace(new RegExp(`\\n*\\s*${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n*`, 'g'), "\n\n").trim();
+        storySoFarEl.value = (cleanedStoryText ? cleanedStoryText + "\n\n" : "") + placeholder;
+        localStorage.storySoFar = storySoFarEl.value;
+      }
+    }
+  } catch (e) {
+    console.error("AI call failed:", e);
+    targetTextarea.value = originalText;
+  } finally {
+    genButton.disabled = false;
+    stopButton.style.display = 'none';
+    loader.style.display = 'none';
+    
+    // If generation was successful, show and enable the regenerate button
+    if (bibleData && bibleData.stopReason !== 'error' && bibleData.stopReason !== 'user') {
+      regenButton.style.display = 'inline-block';
+    }
+    regenButton.disabled = false;
+    
+    window.currentlyGenerating = false;
+    window.currentBibleGeneration = null;
+    window.generatingBibleSectionId = null;
+    window.generatingBibleSectionName = null;
+    // Clear the globals used by the prompt to prevent stale data
+    window.newEventsForPrompt = null;
+    window.existingSectionContentForPrompt = null;
+  }
+}
+
+async function rateLastMessage(rating) {
+  if(!window.lastGenerationStreamObj) return;
+
+  if(!localStorage.knowsHowRatingsWork) {
+    if(!confirm("Your ratings help improve Perchance's AI plugin, which powers this generator. Please do not submit ratings if your story includes sensitive personal info.\n\nContinue?")) return;
+    localStorage.knowsHowRatingsWork = "1";
+  }
+
+  let score = rating==="good" ? 1 : 0;
+  rateLastMessageBadBtn.disabled = true;
+  rateLastMessageGoodBtn.disabled = true;
+  if(rating === "good") {
+    rateLastMessageBadBtn.style.opacity = 0.2;
+  } else {
+    rateLastMessageGoodBtn.style.opacity = 0.2;
+  }
+
+  if(!window.recentRatingReasonCounts) window.recentRatingReasonCounts = {};
+  let reasonCountEntries = Object.entries(window.recentRatingReasonCounts).sort((a,b) => b[1]-a[1]);
+  if(reasonCountEntries.length > 10) reasonCountEntries = reasonCountEntries.slice(0, 10);
+  window.recentRatingReasonCounts = Object.fromEntries(reasonCountEntries);
+  recentRatingReasonsDataList.innerHTML =  reasonCountEntries.map(e => `<option value="${e[0].replace(/</g, "&lt;").replace(/"/g, "&quot;")}"></option>`).join("");
+
+  let reasonResolver;
+  let reasonFinishPromise = new Promise(r => reasonResolver=r);
+  ratingReasonEl.value = "";
+  ratingReasonCtn.style.display = "";
+  ratingReasonEl.focus();
+  await new Promise(r => setTimeout(r, 100));
+
+  function windowClickHandler(event) {
+    if(!ratingReasonCtn.contains(event.target)) {
+      reasonResolver(ratingReasonEl.value);
+    }
+  }
+  window.addEventListener("click", windowClickHandler);
+
+  function enterKeydownHandler(event) {
+    if(event.key === 'Enter') {
+      reasonResolver(ratingReasonEl.value);
+    }
+  }
+  ratingReasonEl.addEventListener("keydown", enterKeydownHandler);
+
+  let reason = await reasonFinishPromise;
+  if(reason.length < 100) window.recentRatingReasonCounts[reason] = (window.recentRatingReasonCounts[reason] || 0) + 1;
+
+  ratingReasonCtn.style.display = 'none';
+  window.removeEventListener("click", windowClickHandler);
+  ratingReasonEl.removeEventListener("keydown", enterKeydownHandler);
+  window.lastGenerationStreamObj.submitUserRating({score, reason});
+}
+
+async function generateShareLinkForStory() {
+  if(!confirm("This will save the current story data as a sharable link/URL. It's a private URL that's only accessible to others if you give them the link. Continue?")) return;
+
+  if(!window.CompressionStream) {
+    alert("Share links use a feature that's only available in modern browsers. Please upgrade your browser to the latest version to use this feature.");
+    return;
+  }
+  if((document.getElementById('storyOverviewEl').value+window.storySoFarEl.value).trim() === "") {
+    alert("You need to add some content before sharing.");
+    return;
+  }
+
+  document.getElementById('shareLinkCtn').hidden = true;
+
+  document.getElementById('shareStoryBtn').disabled = true;
+  document.getElementById('shareStoryBtn').textContent = "⏳ uploading story...";
+
+  let jsonString = JSON.stringify(getCurrentStoryData());
+
+  jsonString = jsonString.replace(/#/g, "%23");
+  let jsonBlob = await fetch("data:text/plain;charset=utf-8,"+jsonString).then(res => res.blob());
+
+  let compressedBlob = await compressBlobWithGzip(jsonBlob);
+
+  let { url: uploadUrl, size, error } = await upload(compressedBlob);
+  if(error) {
+    document.getElementById('shareStoryLinkInputEl').value = `error: ${error}`;
+    alert(`Error: ${error}${error === "disallowed_content" ? ". If you believe this is incorrect, then you may need to explicitly state that relevant characters are 18 or older, since the moderation system can make mistakes if there is ambiguity." : ""}`);
+  } else {
+    document.getElementById('shareStoryLinkInputEl').value = `https://perchance.org/${window.generatorName}#data=`+uploadUrl.replace("[https://user.uploads.dev/file/](https://user.uploads.dev/file/)", "uup1:");
+  }
+  document.getElementById('shareLinkCtn').hidden = false;
+  document.getElementById('shareStoryBtn').textContent = "🔗 share this story";
+  document.getElementById('shareStoryBtn').disabled = false;
+  document.getElementById('shareStoryBtn').hidden = true;
+}
+
+async function compressBlobWithGzip(blob) {
+  let cs = new CompressionStream('gzip');
+  let compressedStream = blob.stream().pipeThrough(cs);
+  let outputBlob = await new Response(compressedStream).blob();
+  return new Blob([outputBlob], { type: "application/gzip" });
+}
+
+async function confirmAsync(message, opts) {
+  if(!opts) opts = {};
+  if(!message) message = "Are you sure?"
+  return new Promise(resolve => {
+    let overlay = Object.assign(document.createElement("div"), { tabIndex: 0 });
+    overlay.style.cssText = `position:fixed;inset:0;z-index:99999999;display:grid;place-items:center;background-color:rgba(0,0,0,.65);font:16px/1.4 system-ui`;
+    overlay.innerHTML = `<div style="text-align:left !important;max-width:min(97vw, 450px);padding:15px;border-radius:8px;background-color:light-dark(#fff,#222);color:light-dark(#000,#fff);box-shadow:0 2px 8px rgba(0,0,0,.2);">
+      <p style="margin:0 0 20px;white-space:pre-wrap;">${message.replace(/[<>&]/g, m => ({"<":"&lt;","&":"&amp;",">":"&gt;"}[m]))}</p>
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
+        <button ${opts.hideCancel ? "hidden" : ""} style="padding:6px 16px;border:1px solid light-dark(#ccc,#555);border-radius:6px;background-color:light-dark(#f6f6f6,#333);color:inherit;cursor:pointer;">Cancel</button>
+        <button autofocus style="padding:6px 16px;border:none;border-radius:6px;background-color:light-dark(#1677ff,#2b87ff);color:#fff;cursor:pointer;">Okay</button>
+      </div>
+    </div>`;
+    let [cancelBtn, okBtn] = overlay.querySelectorAll("button");
+    let finish = val => { overlay.remove(); resolve(val); };
+    cancelBtn.onclick = () => finish(false);
+    okBtn.onclick = () => finish(true);
+    overlay.onkeydown = e => {
+      if (e.key === "Escape") finish(false);
+      else if (e.key === "Enter") finish(true);
+    };
+    document.body.append(overlay);
+    overlay.focus({ preventScroll: true });
+  });
+}
+
+async function loadDataFromUrlHash() {
+  let success = false;
+  if(!window.DecompressionStream) {
+    alert("Story share links use a browser feature that's only available in modern browsers. Please upgrade your browser to the latest version to allow for loading data from story share links.");
+    return {success, error:"browser_compat"};
+  }
+
+  let loadingModal = document.createElement('div');
+  loadingModal.innerHTML = `<div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+    <div style="padding: 20px; background-color: var(--box-color); border-radius: 8px;">
+      ⏳ loading story data...
+    </div>
+  </div>`;
+  loadingModal = loadingModal.firstElementChild;
+  document.body.append(loadingModal);
+
+  try {
+    let hashText = window.location.hash.slice(1);
+    if(!hashText.startsWith("data=")) {
+      throw new Error("Invalid share URL.");
+    }
+    let fileUrl = hashText.replace(/^data=/, "");
+    if(/^uup1(:|%3A)/.test(fileUrl)) {
+      fileUrl = fileUrl.replace(/^uup1(:|%3A)/, "[https://user.uploads.dev/file/](https://user.uploads.dev/file/)");
+    }
+    let fetchOptions = {};
+    if(window.AbortSignal && AbortSignal.timeout) fetchOptions.signal = AbortSignal.timeout(10000);
+    let fileBlob = await fetch(fileUrl, fetchOptions).then(res => res.ok ? res.blob() : null).catch(console.error);
+    if(!fileBlob) {
+      loadingModal.remove();
+      await confirmAsync(`It seems you've tried to load a share URL, but the file specified by the URL does not exist. If you believe it should exist, you can ask for help on the community forum, or check if the file has been quarantined:\n\nperchance.org/quarantined-files`, {hideCancel:true});
+      return {success:false, error:"loading_cancelled_by_user"};
+    }
+    let text;
+    if(fileUrl.endsWith(".gz")) {
+      let decompressedBlob = await decompressBlobWithGzip(fileBlob);
+      text = await decompressedBlob.text();
+    } else {
+      text = await fileBlob.text();
+    }
+    let dataFromUrl = JSON.parse(text);
+    if(dataFromUrl.format === "perchance-ai-story-v1") {
+      let confirmed = await confirmAsync("𝗛𝗲𝗮𝗱𝘀 𝘂𝗽: You're loading a story share link. This will overwrite your existing story data. 𝗖𝗼𝗻𝘁𝗶𝗻𝘂𝗲?\n\n(Note: You can click cancel and then load the share link in your browser's incognito/private mode to avoid overwriting your current story, or just save your existing story first.)");
+      if(!confirmed) {
+        window.location.hash = "";
+        loadingModal.remove();
+        return {success, error:"loading_cancelled_by_user"};
+      }
+      try { loadDataIntoLocalStorage(dataFromUrl); } catch(e) { alert("Failed to load data into your browser storage. Please report this issue using the feedback button, including the story length (word count) and your device/browser."); console.error(e); }
+      loadChatDataIntoInputAreas(dataFromUrl);
+      success = true;
+    } else {
+      alert("Unknown story data format.");
+    }
+  } catch(e) {
+    alert(`Failed to load story data: ${e.message}`);
+    console.error(e);
+  }
+
+  loadingModal.remove();
+  return {success};
+}
+
+async function decompressBlobWithGzip(blob) {
+  let ds = new DecompressionStream("gzip");
+  let decompressedStream = blob.stream().pipeThrough(ds);
+  return await new Response(decompressedStream).blob();
+}
+
+function getCurrentStoryData() {
+  let storyData = {
+    format: "perchance-ai-story-v1",
+    storyOverview: document.getElementById('storyOverviewEl').value.trim(),
+    storySoFar: window.storySoFarEl.value.trim(),
+    whatHappensNext: document.getElementById('whatHappensNextEl').value.trim(),
+    oneParagraphAtATime: document.getElementById('oneParagraphAtATimeCheckbox').checked,
+    perspective: document.getElementById('perspectiveSelect').value,
+    genre: document.getElementById('genreSelect').value,
+    style: document.getElementById('styleSelect').value,
+    ttsEnabled: document.getElementById('ttsCheckbox').checked,
+    trackingEnabled: localStorage.trackingEnabled || 'false',
+  };
+  
+  if (storyData.trackingEnabled === 'true') {
+    storyData.playerInfo = document.getElementById('playerInfoEl').value.trim();
+    storyData.charactersInfo = document.getElementById('charactersInfoEl').value.trim();
+    storyData.locationsInfo = document.getElementById('locationsInfoEl').value.trim();
+    storyData.eventsInfo = document.getElementById('eventsInfoEl').value.trim();
+    storyData.loreInfo = document.getElementById('loreInfoEl').value.trim();
+    storyData.mysteriesInfo = document.getElementById('mysteriesInfoEl').value.trim();
+    storyData.scratchpad = document.getElementById('scratchpadEl').value.trim();
+  }
+  
+  return storyData;
+}
+
+function saveStoryDataToUsersDevice() {
+  let dataToSave = getCurrentStoryData();
+  let filename = prompt("Choose a filename:", window.lastSaveFilenameUsed || "my-story");
+  if(filename === null) return;
+  window.lastSaveFilenameUsed = filename;
+  filename += ".ai-story.json";
+  let saveBlob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
+  let downloadUrl = URL.createObjectURL(saveBlob);
+  let downloadLink = document.createElement('a');
+  downloadLink.href = downloadUrl;
+  downloadLink.download = filename;
+  downloadLink.click();
+  URL.revokeObjectURL(downloadUrl);
+}
+
+async function loadStoryDataFromUsersDevice() {
+  return new Promise((resolve, reject) => {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json, text/json, text/plain, application/JSON, .json';
+    input.onchange = async (event) => {
+      let file = event.target.files[0];
+      if (file) {
+        try {
+          let content = await file.text();
+          let loadedData = JSON.parse(content);
+          if(loadedData.format === "perchance-ai-story-v1") {
+            if((document.getElementById('storyOverviewEl').value+window.storySoFarEl.value+document.getElementById('whatHappensNextEl').value).trim() !== "") {
+              let confirmed = confirm("Loading this data will 𝗼𝘃𝗲𝗿𝘄𝗿𝗶𝘁𝗲 your current story. Continue?");
+              if(!confirmed) {
+                resolve(false);
+                return;
+              }
+            }
+            try { loadDataIntoLocalStorage(loadedData); } catch(e) { alert("Failed to load data into your browser storage. Please report this issue using the feedback button, including the story length (word count) and your device/browser."); console.error(e); }
+            loadChatDataIntoInputAreas(loadedData);
+            resolve(true);
+          } else {
+            alert("Unknown save file format.");
+            resolve(false);
+          }
+        } catch (error) {
+          alert("There was an error while loading that story file.");
+          reject(error);
+        }
+      } else {
+        resolve(false);
+      }
+    };
+    input.click();
+  });
+}
+
+async function copyStoryToClipboard() {
+  let textToCopy = window.storySoFarEl.value;
+
+  // Remove all section-specific placeholders
+  if (window.bibleSectionPlaceholders) {
+    Object.values(window.bibleSectionPlaceholders).forEach(ph => {
+      textToCopy = textToCopy.replace(new RegExp(`\\n*\\s*${ph.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n*`, 'g'), "\n\n");
+    });
+  }
+
+  // Filter out summary paragraphs
+  textToCopy = textToCopy.split('\n\n').filter(p => !p.trim().startsWith('SUMMARY^')).join('\n\n');
+
+  // Clean up extra newlines and trim
+  textToCopy = textToCopy.replace(/\n{3,}/g, '\n\n').trim();
+
+  await navigator.clipboard.writeText(textToCopy);
+  
+  let copyBtn = document.getElementById('copyStoryBtn');
+  if (copyBtn) {
+    copyBtn.textContent = "✅ copied";
+    setTimeout(() => {
+      copyBtn.textContent = "📋 copy story";
+    }, 2000);
+  }
+}
+
+function getMessagesWithSummaryReplacements(text, opts) {
+  if(!opts) opts = {};
+  let minimumMessageLevel = opts.minimumMessageLevel || 0;
+
+  let messages = text.split("\n\n").map(m => m.trim()).filter(m => m);
+  let messagesWithSummaryReplacements = [];
+  let highestLevelSeen = 0;
+
+  while(messages.length > 0) {
+    let m = messages.pop();
+    let level = Number((m.match(/SUMMARY\^([0-9]+):/)||[])[1] || 0);
+    if(level < minimumMessageLevel) continue;
+    if(level >= highestLevelSeen) {
+      messagesWithSummaryReplacements.unshift(m);
+      highestLevelSeen = level;
+    }
+  }
+  return messagesWithSummaryReplacements;
+}
+  
+function injectSummariesAndComputeNextSummariesInBackgroundIfNeeded() {
+  if(!window.summariesReadyToInject) window.summariesReadyToInject = [];
+  if(window.summariesReadyToInject.length > 0) {
+    let allMessagesOriginal = window.storySoFarEl.value.split(/\n{2,}/g).map(m => m.trim()).filter(m => m);
+    let allMessagesNew = allMessagesOriginal.slice(0);
+    for(let {summarizedMessages, lastMessageSummarizedIndex, summary, level} of window.summariesReadyToInject) {
+      let lastSummarizedMessage = summarizedMessages[summarizedMessages.length-1];
+      if(allMessagesOriginal[lastMessageSummarizedIndex] === lastSummarizedMessage) {
+        allMessagesNew.splice(lastMessageSummarizedIndex + 1, 0, `SUMMARY^${level}: ${summary}`);
+      } else {
+        console.warn("Content of last-summmarized-message doesn't match content of message at lastMessageSummarizedIndex. Safe to ignore this warning if logs have been edited since last 'send' button click. This summary will simply be discarded and we'll compute a new one with the up-to-date story text.");
+      }
+    }
+    window.storySoFarEl.value = allMessagesNew.join("\n\n");
+    window.summariesReadyToInject = [];
+  }
+  
+  let { countTokens, idealMaxContextTokens } = ai({getMetaObject:true});
+  let contextLengthToIdeallyStayUnder = idealMaxContextTokens*0.88;
+  let numCharsToSummarizeAtATime = 1500;
+  
+  let preprocessedTextForTokenCount = getPreprocessedStoryText();
+  let currentlyUsedContextLength = countTokens(preprocessedTextForTokenCount);
+
+  if(currentlyUsedContextLength < contextLengthToIdeallyStayUnder) {
+    console.log(`Summarization not needed. currentlyUsedContextLength=${currentlyUsedContextLength} which is less than ${contextLengthToIdeallyStayUnder}`);
+    return;
+  }
+      
+  (async function() {
+    if(window.alreadyDoingSummary) return;
+    try {
+      window.alreadyDoingSummary = true;
+      let storySoFarElText = window.storySoFarEl.value;
+      let allMessageObjs = storySoFarElText.split(/\n{2,}/).map(m => m.trim()).filter(m => m).map((msgText, i) => {
+        return {
+          text: msgText,
+          index: i,
+          level: Number((msgText.match(/SUMMARY\^([0-9]+):/)||[])[1] || 0)
+        };
+      });
+      
+      let summaryLevelToMessageBlocks = new Map();
+      let summaryLevelBeingProcessed = 1;
+      while(1) {
+        let thisLevelAndPreviousLevelMessageObjs = allMessageObjs.filter(m => m.level === summaryLevelBeingProcessed || m.level === summaryLevelBeingProcessed-1);
+        if(thisLevelAndPreviousLevelMessageObjs.length === 0) {
+          console.log("Finished creating summaryLevelToMessageBlocks.");
+          break;
+        }
+        
+        let blocks = [];
+        let currentBlock = [];
+        currentBlock.globalMessageIndices = [];
+        for(let m of thisLevelAndPreviousLevelMessageObjs) {
+          currentBlock.push(m.text);
+          currentBlock.globalMessageIndices.push(m.index);
+          if(m.level === summaryLevelBeingProcessed) {
+            blocks.push(currentBlock);
+            currentBlock = [];
+            currentBlock.globalMessageIndices = [];
+          }
+        }
+        if(summaryLevelBeingProcessed === 1 && currentBlock.length === 0) {
+          console.warn("final block for summaryLevel==1 should have messages? if it doesn't, then we're maybe summarizing too close to the end of the story text?");
+        }
+        blocks.push(currentBlock);
+        summaryLevelToMessageBlocks.set(summaryLevelBeingProcessed, blocks);
+        summaryLevelBeingProcessed++;
+      }
+      
+      let summaryLevelBlockEntries = [...summaryLevelToMessageBlocks.entries()].sort((a,b) => a[0]-b[0]);
+      for(let [summaryLevel, blocks] of summaryLevelBlockEntries) {
+        let messagesToSummarizeFromFinalBlock = blocks[blocks.length-1];
+        let numCharsInFinalBlock = messagesToSummarizeFromFinalBlock.reduce((a,v) => a+v.length, 0);
+        if(numCharsInFinalBlock < numCharsToSummarizeAtATime) { 
+          console.log(`summaryLevel=${summaryLevel} doesn't need summarizing yet. numCharsInFinalBlock=${numCharsInFinalBlock}`);
+          continue;
+        }
+      
+        while(1) {
+          if(messagesToSummarizeFromFinalBlock.length <= 2) break;
+          let numChars = messagesToSummarizeFromFinalBlock.reduce((a,v) => a+v.length, 0);
+          if(numChars < numCharsToSummarizeAtATime) break;
+          
+          if(numChars > numCharsToSummarizeAtATime*10) {
+            let halfOfMessagesCount = Math.floor(messagesToSummarizeFromFinalBlock.length/2);
+            for(let j = 0; j < halfOfMessagesCount; j++) {
+              messagesToSummarizeFromFinalBlock.pop();
+              messagesToSummarizeFromFinalBlock.globalMessageIndices.pop();
+            }
+          } else {
+            messagesToSummarizeFromFinalBlock.pop();
+            messagesToSummarizeFromFinalBlock.globalMessageIndices.pop();
+          }
+        }
+
+        if(messagesToSummarizeFromFinalBlock.length === 0) {
+          console.error("No messages to summarize??");
+          continue;
+        }
+
+        let existingSummary = window.summariesReadyToInject.filter(s => s.summarizedMessages.join("\n\n") === messagesToSummarizeFromFinalBlock.join("\n\n"))[0];
+        if(existingSummary) {
+          console.error("Existing summary hasn't been injected yet?? Should have happened before this code ran.");
+          return;
+        }
+        
+        let lastMessageSummarizedIndex = messagesToSummarizeFromFinalBlock.globalMessageIndices[messagesToSummarizeFromFinalBlock.length-1];
+        if(messagesToSummarizeFromFinalBlock.globalMessageIndices.length !== messagesToSummarizeFromFinalBlock.length) { console.error("should be one index per message"); return; }
+        
+        let exampleBlocksForStartWith = blocks.slice(-3, -1);
+        let exampleBlockSummaries = exampleBlocksForStartWith.map(b => b[b.length-1]);
+        
+        let instructionSummaries = getMessagesWithSummaryReplacements(storySoFarElText, {minimumMessageLevel:summaryLevel});
+        
+        while(1) {
+          if(instructionSummaries.length === 0) break;
+          if(exampleBlockSummaries.includes(instructionSummaries[instructionSummaries.length-1])) {
+            instructionSummaries.pop();
+            continue;
+          }
+          break;
+        }
+        instructionSummaries = instructionSummaries.map(m => m.replace(/SUMMARY\^[0-9]+:/, "").trim());
+        
+        let startWithBlocks = exampleBlocksForStartWith.map((block) => ({messages:block.slice(0, -1), summary:block.slice(-1)[0]}));
+        startWithBlocks.push({messages:messagesToSummarizeFromFinalBlock, summary:""});
+        
+        if(messagesToSummarizeFromFinalBlock.join("\n").replaceAll(`SUMMARY^${summaryLevel-1}:`, "").includes("SUMMARY^")) {
+          console.error("Should have only been summaryLevel-1 summaries in messagesToSummarizeText. messagesToSummarizeFromFinalBlock:", messagesToSummarizeFromFinalBlock);
+        }
+        
+        let startWith = startWithBlocks.map(({messages, summary}, blockI) => {
+          let letterLabel = "";
+          if(blockI===0) letterLabel = "[A]";
+          if(blockI===1) letterLabel = "[B]";
+          if(blockI===2) letterLabel = "[C]";
+
+          let messagesText = messages.map((message, mi) => {
+            message = message.replace(`SUMMARY\^${summaryLevel-1}:`, "").replace(`SUMMARY\^${summaryLevel}:`, "").replace(/\n/g, " ").trim();
+            return `${summaryLevel === 1 ? `(${mi+1}) ` : ""}${message}`;
+          }).join(" ");
+          
+          summary = summary.replace(`SUMMARY\^${summaryLevel-1}:`, "").replace(`SUMMARY\^${summaryLevel}:`, "").replace(/\n/g, " ").trim();
+
+          return `>>> FULL TEXT of ${letterLabel}: ${messagesText}\n>>> SUMMARY of ${letterLabel}: ${summary}`;
+        }).join("\n---\n");
+        
+        startWith = startWith.trim();
+
+        window.summaryMessagesForInstruction = instructionSummaries.length > 0 ? instructionSummaries : ["(None.)"];
+        let instruction = root.summaryPromptInstruction.evaluateItem;
+        window.summaryMessagesForInstruction = null;
+
+        let promptOptions = {
+          instruction,
+          startWith,
+          stopSequences: ["\n\n", "\n---", ">>> FULL TEXT", "FULL TEXT"],
+        };
+
+        let data = await root.ai(promptOptions);
+        
+        if(data.stopReason === "error") continue;
+        
+        let summary = data.generatedText.trim().replace(/\n+/g, " ").trim().replace(/---$/, "").replace(">>> FULL TEXT", "").replace("FULL TEXT", "").trim();
+        if(!summary.trim() || (instructionSummaries[instructionSummaries.length-1] || "").trim() === summary.trim()) {
+          console.warn("AI copied previous summary or gave blank summary. Skipping this summary level for this 'round'. Summary:", summary);
+          continue;
+        }
+
+        if(summary.split(summary.slice(-30)).length > 5) {
+          console.warn("Repeition detected within summary. Fixing...");
+          let result = await root.ai({
+            instruction: [
+              `Does the following story summary snippet shown within <story_summary_snippet>...</story_summary_snippet> include erroneous/unnecessary repetition? If so, respond with fixed, repetition-free text within <fixed_story_summary_snippet>...</fixed_story_summary_snippet>. If the text is fine, then just respond with exactly 'no_repetition', and nothing more.`,
+              ``,
+              `<story_summary_snippet>`,
+              `${summary}`,
+              `</story_summary_snippet>`,
+              ``,
+              `Your response should either be 'no_repetition' or start with <fixed_story_summary_snippet> and give the repetition-free summary, and then end with </fixed_story_summary_snippet>. Feel free to just respond with 'no_repetition' if there's no repetition. Don't add any extra commentary.`,
+            ].join("\n"),
+            stopSequences: ["</fixed_story_summary_snippet>"],
+          });
+          if(result.stopReason === "error") continue;
+          let fixedSummary = result.generatedText.match(/<fixed_story_summary_snippet>(.+)<\/fixed_story_summary_snippet>/s)?.[1].trim();
+          console.warn("fixedSummary:", fixedSummary)
+          if(fixedSummary) summary = fixedSummary;
+        }
+        
+        console.log("----------------");
+        console.log("----------------");
+        console.log("----------------");
+        console.log("𝗟𝗘𝗩𝗘L:", summaryLevel);
+        console.log("𝗜𝗡𝗦𝗧𝗥𝗨𝗖𝗧𝗜𝗢𝗡:", instruction);
+        console.log("𝗦𝗧𝗔𝗥𝗧𝗪𝗜TH:", startWith);
+        console.log("𝗦𝗨𝗠𝗠𝗔𝗥𝗬:", summary);
+        console.log("----------------");
+        console.log("----------------");
+        console.log("----------------");
+        
+        window.summariesReadyToInject.push({summarizedMessages:messagesToSummarizeFromFinalBlock, lastMessageSummarizedIndex, summary, level:summaryLevel});
+      }
+    } catch(e) {
+      console.error(e);
+    } finally {
+      window.alreadyDoingSummary = false;
+    }
+  })();
+}
+</script>
+
+<!-- COMMENTS STUFF -->
+<div id="commentsCtn">
+  <p><button onclick="if(commentsEl.style.display == 'none') { if(!commentsEl.innerHTML.trim()){initTabbedComments();}; commentsEl.style.display=''; this.textContent='hide comments'; } else { commentsEl.style.display='none'; this.textContent='💬 show comments'; }">💬 show comments</button></p>
+  <p id="commentsEl" style="display:none;"></p>
+</div>
+<script>
+  function initTabbedComments() {
+    commentsEl.innerHTML = "";
+    commentsEl.append(tabbedCommentsPlugin({channels:commentChannels, defaultChannelOptions:defaultCommentOptions}));
+  }
+</script>
+<br><br><br>
+
+<!-- DARK MODE STUFF -->
+<div id="leftFooterStickyButtonsCtn" style="position:fixed; bottom:0.5rem; left:0.5rem; z-index:10;">
+  <button id="darkModeBtn" style="cursor:pointer;" onclick="window.toggleManualDarkMode(); if(commentsEl.innerHTML.trim()){initTabbedComments()};">🌃</button>
+  <div style="display:inline-block;">[fullscreenButton("&nbsp;&nbsp;&nbsp;⇱&nbsp;&nbsp;&nbsp;", "&nbsp;&nbsp;&nbsp;⇲&nbsp;&nbsp;&nbsp;")]</div>
+</div>
+<script>
+  function toggleManualDarkMode() {
+    let newColorScheme = (getCurrentColorScheme() === "dark" ? "light" : "dark");
+    localStorage.forceColorScheme = newColorScheme;
+    setColorScheme(newColorScheme);
+    // if chosen mode matches current OS default, we remove manual "forced" mode:
+    let systemColorScheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+    if(systemColorScheme === newColorScheme) {
+      localStorage.removeItem("forceColorScheme");
+    }
+  }
+  function getCurrentColorScheme() {
+    if(localStorage.forceColorScheme !== undefined) {
+      return localStorage.forceColorScheme;
+    } else {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+    }
+  }
+  function setColorScheme(scheme) {
+    if(scheme !== "dark" && scheme !== "light") throw new Error("scheme should be 'light' or 'dark'");
+    document.querySelector("#darkModeBtn").textContent = (scheme === "dark" ? "🌄" : "🌃");
+    window.colorScheme = scheme;
+    if(scheme === "dark") {
+      document.documentElement.style.colorScheme = "dark";
+      document.body.style.color = "#d8d4cf";
+      document.body.style.backgroundColor = "#131516";
+      document.documentElement.style.setProperty('--box-color', '#2a2a2a');
+      document.documentElement.style.setProperty('--box-border-color', '#444');
+      //  Set tab colors for dark mode
+      document.documentElement.style.setProperty('--tab-active-bg', '#131516');
+      document.documentElement.style.setProperty('--tab-text-color', '#d8d4cf');
+
+    } else {
+      document.documentElement.style.colorScheme = "light";
+      document.body.style.color = "black";
+      document.body.style.backgroundColor = "white";
+      document.documentElement.style.setProperty('--box-color', '#ebebeb');
+      document.documentElement.style.setProperty('--box-border-color', '#bdbdbd');
+      //  Set tab colors for light mode
+      document.documentElement.style.setProperty('--tab-active-bg', 'white');
+      document.documentElement.style.setProperty('--tab-text-color', 'black');
+    }
+    //  Update tab colors for dark/light mode
+    updateTabColors(scheme);
+    for(let fn of window.onForcedColorSchemeChangeHandlers) {
+      try { fn({colorScheme:scheme}) } catch(e) { console.error(e); }
+    }
+  }
+
+  //  Helper function to fix tab-active color
+  function updateTabColors(scheme) {
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) {
+      if (scheme === 'dark') {
+        activeTab.style.backgroundColor = 'var(--tab-active-bg, #131516)'; // body bg
+      } else {
+        activeTab.style.backgroundColor = 'var(--tab-active-bg, white)'; // body bg
+      }
+    }
+    // Also update all tab button text colors
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(b => {
+      b.style.color = 'var(--tab-text-color, ' + (scheme === 'dark' ? '#d8d4cf' : 'black') + ')';
+    });
+  }
+
+  // during page load, set the chosen mode based on localStorage value if it exists:
+  if(localStorage.forceColorScheme !== undefined) {
+    setColorScheme(localStorage.forceColorScheme);
+  } else {
+    // user has not manually overwritten, so we use OS default:
+    let systemIsInDarkMode = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    setColorScheme(systemIsInDarkMode ? "dark" : "light");
+  }
+</script>
+ 
+<!-- FEEDBACK STUFF -->
+<div id="feedbackOuterCtn" style="position:fixed; bottom:0.5rem; right:0.5rem; text-align:right; z-index:100;">
+  <div id="feedbackCommentsCtn" hidden style="margin-bottom:0.25rem;"></div>
+  <button id="feedbackCommentsBtn" onclick="if(feedbackCommentsCtn.hidden) { feedbackCommentsCtn.hidden=false; if(!feedbackCommentsCtn.innerHTML) { feedbackCommentsCtn.innerHTML=generateFeedbackCommentsHtml(); } this.innerHTML='❌ close'; } else {  feedbackCommentsCtn.hidden=true; setTimeout(() => { if(feedbackCommentsCtn.hidden) {feedbackCommentsCtn.innerHTML=''} }, 20000); /* delay, to allow time for feedback to send */  this.innerHTML='🗨️ feedback'; }">🗨️ feedback</button>
+</div>
+<script>
+  // Change the below variable to `false` to disable debug info (e.g. browser version, device type, localStorage size limits, etc.) with feedback submissions.
+  // See   perchance.org/bug-report-plugin   for more info.
+  let enableBrowserDebugInfoWithFeedback = true;
+  
+  if(enableBrowserDebugInfoWithFeedback) bugReport.initAutoErrorCapture(); // <-- must be initialized at page load
+  
+  function generateFeedbackCommentsHtml() {
+    let options = {channel:"feedback", hideComments:location.hash.includes("#showfeedback") || localStorage.showFeedback ? false : true, height:location.hash.includes("#showfeedback") || localStorage.showFeedback ? 500 : 220, commentPlaceholderText: "Share some feedback about how I can improve this page. Do not share personal info, feedback comments are public.", submitButtonText: "submit feedback", hideSettingsButton:true, hideFullscreenButton:true};
+    
+    async function beforeSubmit({inputText}) {
+      if(!inputText.trim()) return null;
+      
+      let url = await bugReport.createTemporaryDebugInfoUrl({ // this URL is not permanent - i.e. debug data is deleted after a few months. See   perchance.org/bug-report-plugin   for more info.
+        customData: {
+          storySoFarLength: storySoFarEl.value.length, // since very long stories cause some issues on slow/old devices
+          timeSincePageLoad: Date.now()-window.pageLoadStartTime,
+          storySoFarElInitialRenderTime: window.storySoFarElInitialRenderTime,
+          storageEstimate: await navigator.storage.estimate(),
+        },
+        // Debug info is encrypted with this public key to increase user privacy. IF you're developing your own version of this generator, you can generate your own public/private key pairs here:  https://perchance.org/public-key-encryption-tool
+        publicKey: "PUBLIC_1_VhWWC5YZSOvjJcKEPLEA6FfirbpAaSqNFkEFyuEk78CUdWGJyfSUt4HXL4fZZLZSCV8GVaSeZSsyVUiXLwd8PuFFcYMDLoig04JpvQAgvGGYZPJtDQ4aDdpTIUZSLBSkZZVFiCdqgnFk8xQWKq0dVkipUCQiZSO7beiEfEQ71PJ6AstsiolKwUBH8Cy28DmETkopYDe9y4QlohxXholANkpUdNLGgfctNAdebGw7O1CPABAhWFJRYlVpa4tEn2JUgcBywPUFQ7tEV1eRVqm7gJFMC0ItxvuwUYokiZSQpAbDN0WptNCWZP5CiG5owi0iqV0ncQ3sM1MgsKRadF3EqiHni0ceY9OoQ0wzhZSQ2tL6dCeZSxGW9Wt0AWirPlQvNzaqeJBZPVfe0R7SaNKdWm9OVFRKkJtIZS5WRlfDUUyTmdHGuFkBoZZalqrugNG62WSffMczMofsiaqeVxakUpW5XyFhRsPUATIdws7KeqgX8MZP6zAtZZ8BM6fkkg6ywT4oepCGAqwYY8iWJ1lGbdkBXrqN7y7iXQDRlAEFVmAgzaMK41oJQgcuZSB2MZPHZPGCHkeINZPVLwGpIDsyp8zuXDxA0w0YzmnSEWPRdIOVgGZPaGa4W5TSy01co9Oip2YLobLKYCrXt5Dca44UB0GowQMlqWZP2xVS7MS2ngZPyGmH1fpzNakwM5wEnJsTZPFsql6LN9aXPYhqrpYtw7bmEVTUqpDYVdOFUbepspmQJdgRFBDUb0UwZSZShB4kHCyZZigcZZ4Ae5HBIFNcYcLid6KeLe8whUyyVE7d8ukG8Y2Ed4FsYRxO8HbpzJiS6WBCyu9uPYga6OVSGB8M6SUuKaZZhlxNmpwrZZZShXF5ZZTxVOJvMouWDm9yvUBu0ygpZSfyAN5locFrSwtZShAD7eT7EYPcAEe8CQUmgF8ddUTTzhWzbmk5eBjDBHHZS1w2NTGRoVnGsfCwZPrCzLLCpFASyZZ4mAcWoGBpJXuDKMftslWRGCvZZKQFCCZZVYtvC8eJIWlZP97dus9GfKZSXOEKcZZFeeH3ZPkUbipiaPMEXZSIuzjUkeZPmM9uhxM1Cap3tf5iXBG3QU0Aiw2sK8NXYkrwiyQNxsGIA02ZSJ2K7hZZsJFVjmWQB3JjSrmHF0PFpWYXRRx4puQ7m2hlqSNPxEkGpaADR6d80Ahpartj9UZZ1DGxzKMex7sKZSCgehOfi64rcdTfDIEZPxMoJhXhlZZ5YFJcLXQjeHOwFQkUXTh2BxQf48O7VpagJlwEGBlYBkghVLShBElVHEU2p8RUcLQbX4YQNlBPzZZO8TRnBvuK8jKEIY4xsWadBUEPOZPWAJStNLDrOiRtedt3vNpUQKh4ZZOqNSXdAECgVtmTVBVuBAri0uEyjer39ZZH6WUXYYo5CKG9RfQrXhhfqeVyUIUK8XcUQjMpeotKQFGdyhsrD4aOFsEmqzrFf3BnWFYruIsY5Kx9ADpyZZdWFTzyMzyhpWaRJviBjx1IZSQFSf92A93bUU8Ka83hZZIE1WyKGwkgAlKD2qcNZZFhVkAY7DNqHCAIg6ZZARFgzQ5ecr1iCQ4mUY6EncnNrPRbn5m0jeXYX1pjIcSoTPNn69P7E8ZP8wk4RXw84ZE_PUBLIC_END",
+      });
+      return `${inputText}\n\nBrowser Debug Info:\n${url}`;
+    }
+    if(enableBrowserDebugInfoWithFeedback) options.beforeSubmit = beforeSubmit;
+    
+    if(localStorage.forceColorScheme) options.forceColorScheme = localStorage.forceColorScheme;
+    com = root.commentsPlugin(options);
+    return com;
+  }
+</script>
+
+<script>
+  // so bottom-sticky buttons don't clutter screen while typing:
+  window.isTouchScreen = window.matchMedia("(pointer: coarse)").matches;
+  if(isTouchScreen) {
+    let maxSeenViewportHeight = window.visualViewport.height;
+    let maxSeenFullscreenViewportHeight = window.screen.height;
+    window.visualViewport.addEventListener('resize', () => {
+      let isAlmostCertainlyInFullscreen = Math.abs(window.innerHeight-window.screen.height) / window.screen.height < 0.05;
+      let keyboardIsProbablyShown;
+      if(isAlmostCertainlyInFullscreen) { // measure fullscreen separately, else it messes up our non-fullscreen heuristic/ratio
+        if(window.visualViewport.height > maxSeenFullscreenViewportHeight) maxSeenFullscreenViewportHeight = window.visualViewport.height;
+        keyboardIsProbablyShown = window.visualViewport.height < 0.8*maxSeenFullscreenViewportHeight;
+      } else {
+        if(window.visualViewport.height > maxSeenViewportHeight) maxSeenViewportHeight = window.visualViewport.height;
+        keyboardIsProbablyShown = window.visualViewport.height < 0.8*maxSeenViewportHeight;
+      }
+      leftFooterStickyButtonsCtn.hidden = keyboardIsProbablyShown;
+      feedbackCommentsBtn.hidden = keyboardIsProbablyShown && feedbackCommentsCtn.hidden;
+    });
+  }
+</script>
+
+<script>
+  try {
+    let isTouchScreen = window.matchMedia("(pointer: coarse)").matches;
+    let isSafari = navigator.vendor && navigator.vendor.indexOf('Apple') > -1 && navigator.userAgent && navigator.userAgent.indexOf('CriOS') == -1 && navigator.userAgent.indexOf('FxiOS') == -1;
+    if(isSafari && window.innerWidth < 800 && isTouchScreen) {
+      let viewportMetaEl = document.querySelector("[name=viewport]");
+      if(!viewportMetaEl.getAttribute("content").includes("maximum-scale")) {
+        viewportMetaEl.setAttribute("content", viewportMetaEl.getAttribute("content") + ", maximum-scale=1");
+      }
+      whatHappensNextEl.style.fontSize = "16px";
+      console.log("Safari iOS detected. Added maximum-scale attribute and minimum font sizes to prevent zooming when clicking textarea with small font size:", viewportMetaEl.getAttribute("content"));
+    }
+  } catch(e) {
+    console.error(e);
+  }
+</script>
+
+<style>
+  button:disabled {
+    filter: grayscale(1); /* since firefox doesn't seem to change emoji colors to indicate disabledness - only affects text */
+  }
+</style> 
+
+<script>
+  // preload on mobiles after a few seconds of delay, to avoid causing lag on initial page load
+  if(window.innerWidth < 500) setTimeout(() => ai({preload:true}), 5000);
+  else ai({preload:true});
+</script>
